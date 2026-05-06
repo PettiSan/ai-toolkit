@@ -36,6 +36,10 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Sempre mostrar o diff e aguardar aprovação explícita** antes de commitar — em qualquer projeto.
 
+**Mensagens de commit sempre em inglês**, seguindo o padrão do repo — independentemente do idioma da conversa. Verificar `git log` antes de escrever a mensagem.
+
+**Nunca adicionar Co-Authored-By** nas mensagens de commit.
+
 **GitHub via MCP** quando SSH não estiver disponível: usar sempre `push_files` para múltiplos arquivos. Nunca usar `create_or_update_file` repetidamente.
 
 ---
