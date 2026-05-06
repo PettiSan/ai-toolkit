@@ -73,6 +73,10 @@ Formate a saída **exatamente** assim (WhatsApp usa `*texto*` para negrito):
   🔗 https://trello.com/c/shortLink
 
 📦 *Total: N cards entregues ontem*
+
+🔧 *No que estou trabalhando*
+
+_(preencher antes de enviar)_
 ```
 
 Regras de formatação:
@@ -80,6 +84,7 @@ Regras de formatação:
 - Se uma seção inteira (Homologação ou Produção) não tiver cards, exiba apenas: `_(nenhum card ontem)_`
 - Não use markdown de links `[texto](url)` — o WhatsApp não renderiza isso; escreva a URL na linha seguinte com o emoji 🔗
 - Exiba os grupos em ordem alfabética de prefixo dentro de cada seção
+- A seção "No que estou trabalhando" aparece sempre ao final, com o placeholder — o usuário preenche manualmente antes de enviar
 
 ### Nota sobre segundas-feiras
 
