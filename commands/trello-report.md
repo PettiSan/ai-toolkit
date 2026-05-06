@@ -51,20 +51,19 @@ Classifique cada card pelo prefixo no início do nome:
 
 Cards sem prefixo reconhecido: listar em grupo `[OUTROS]`.
 
-### 5. Verificar card em Doing
+### 5. Verificar card em Doing atribuído ao usuário
 
-Faça duas chamadas para buscar cards nas listas de Doing:
+Busque os cards abertos atribuídos ao usuário autenticado e filtre pelos que estão nas listas de Doing:
 
 ```bash
-# Doing (Apenas 1, Informar Data)
-curl -s "https://api.trello.com/1/lists/654526d8e848f7b27e32f3e7/cards?fields=name,shortLink&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
-
-# Doing (PAUSED/BLOCKED)
-curl -s "https://api.trello.com/1/lists/6787e6feba62de1d7fd9ef3c/cards?fields=name,shortLink&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
+curl -s "https://api.trello.com/1/members/me/cards?filter=open&fields=name,shortLink,idList&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
 ```
 
-- Se encontrar card(s) em qualquer uma das duas listas: use o primeiro card encontrado para preencher a seção "No que estou trabalhando" com o nome e o link do card
-- Se não encontrar nenhum card: pergunte ao usuário — *"Não há card em Doing no momento. O que você quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório
+Do resultado, filtre apenas cards onde `idList` seja:
+- `654526d8e848f7b27e32f3e7` → Doing (Apenas 1, Informar Data)
+
+- Se encontrar card(s): use o primeiro para preencher a seção "No que estou trabalhando" com nome e link
+- Se não encontrar nenhum: pergunte ao usuário — *"Não há card em Doing atribuído a você. O que quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório
 
 ### 6. Gerar o relatório
 
