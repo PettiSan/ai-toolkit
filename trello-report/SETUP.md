@@ -1,6 +1,6 @@
-# /relatorio — Setup & Recovery Guide
+# /trello-report — Setup & Recovery Guide
 
-Complete instructions to get `/relatorio` working from scratch on a fresh Ubuntu (WSL2) machine.
+Complete instructions to get `/trello-report` working from scratch on a fresh Ubuntu (WSL2) machine.
 
 ---
 
@@ -73,7 +73,7 @@ Replace `/path/to/...` with the path found in Step 2, and fill in your credentia
 Add the credentials to your `~/.zshrc` (or `~/.bashrc`):
 
 ```bash
-# Trello credentials (used by /relatorio in Claude Code)
+# Trello credentials (used by /trello-report in Claude Code)
 export TRELLO_API_KEY="your_api_key_here"
 export TRELLO_TOKEN="your_token_here"
 ```
@@ -84,7 +84,7 @@ Reload the shell:
 source ~/.zshrc
 ```
 
-The `/relatorio` command uses these variables in its `curl` calls. Without them, the API call will fail silently.
+The `/trello-report` command uses these variables in its `curl` calls. Without them, the API call will fail silently.
 
 ---
 
@@ -94,7 +94,7 @@ Copy the command file to Claude Code's global commands directory:
 
 ```bash
 mkdir -p ~/.claude/commands
-cp ~/projects/ai-toolkit/commands/relatorio.md ~/.claude/commands/
+cp ~/projects/ai-toolkit/commands/trello-report.md ~/.claude/commands/
 ```
 
 ---
@@ -104,7 +104,7 @@ cp ~/projects/ai-toolkit/commands/relatorio.md ~/.claude/commands/
 Open a Claude Code session and run:
 
 ```
-/relatorio
+/trello-report
 ```
 
 If everything is configured correctly, Claude will call the Trello API and return yesterday's report.
@@ -115,7 +115,7 @@ If everything is configured correctly, Claude will call the Trello API and retur
 |---------|-------------|
 | "No cards found" on a day you know had cards | Check that `TRELLO_API_KEY` and `TRELLO_TOKEN` are exported in the current shell |
 | Empty response from curl | Token may have expired — regenerate at https://trello.com/app-key |
-| Command not found | Check that `relatorio.md` is in `~/.claude/commands/` |
+| Command not found | Check that `trello-report.md` is in `~/.claude/commands/` |
 
 ---
 

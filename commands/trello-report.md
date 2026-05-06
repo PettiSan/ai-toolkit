@@ -51,7 +51,22 @@ Classifique cada card pelo prefixo no início do nome:
 
 Cards sem prefixo reconhecido: listar em grupo `[OUTROS]`.
 
-### 5. Gerar o relatório
+### 5. Verificar card em Doing
+
+Faça duas chamadas para buscar cards nas listas de Doing:
+
+```bash
+# Doing (Apenas 1, Informar Data)
+curl -s "https://api.trello.com/1/lists/654526d8e848f7b27e32f3e7/cards?fields=name,shortLink&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
+
+# Doing (PAUSED/BLOCKED)
+curl -s "https://api.trello.com/1/lists/6787e6feba62de1d7fd9ef3c/cards?fields=name,shortLink&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
+```
+
+- Se encontrar card(s) em qualquer uma das duas listas: use o primeiro card encontrado para preencher a seção "No que estou trabalhando" com o nome e o link do card
+- Se não encontrar nenhum card: pergunte ao usuário — *"Não há card em Doing no momento. O que você quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório
+
+### 6. Gerar o relatório
 
 Formate a saída **exatamente** assim (WhatsApp usa `*texto*` para negrito):
 
@@ -76,15 +91,17 @@ Formate a saída **exatamente** assim (WhatsApp usa `*texto*` para negrito):
 
 🔧 *No que estou trabalhando*
 
-_(preencher antes de enviar)_
+• Nome do Card em Doing
+  🔗 https://trello.com/c/shortLink
 ```
+
+Se não havia card em Doing, substitua o bloco final pela resposta que o usuário forneceu.
 
 Regras de formatação:
 - Omita prefixos que não tiveram nenhum card no dia
 - Se uma seção inteira (Homologação ou Produção) não tiver cards, exiba apenas: `_(nenhum card ontem)_`
 - Não use markdown de links `[texto](url)` — o WhatsApp não renderiza isso; escreva a URL na linha seguinte com o emoji 🔗
 - Exiba os grupos em ordem alfabética de prefixo dentro de cada seção
-- A seção "No que estou trabalhando" aparece sempre ao final, com o placeholder — o usuário preenche manualmente antes de enviar
 
 ### Nota sobre segundas-feiras
 

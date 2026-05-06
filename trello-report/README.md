@@ -1,10 +1,10 @@
-# /relatorio
+# /trello-report
 
 Slash command for Claude Code that generates the previous day's delivery report from Trello, formatted for WhatsApp.
 
 ## What it does
 
-Queries the Trello board for all cards moved to the validation lists the day before, groups them by project prefix, and outputs a ready-to-paste WhatsApp message.
+Queries the Trello board for all cards moved to the validation lists the day before, groups them by project prefix, checks for any card currently in Doing, and outputs a ready-to-paste WhatsApp message.
 
 ## Output format
 
@@ -25,10 +25,11 @@ _(nenhum card ontem)_
 
 🔧 *No que estou trabalhando*
 
-_(preencher antes de enviar)_
+• Card currently in Doing
+  🔗 https://trello.com/c/...
 ```
 
-The last section — "No que estou trabalhando" — is always left blank. Fill it in manually before sending on WhatsApp.
+The last section — "No que estou trabalhando" — is auto-filled from the current Doing card. If no card is found in Doing, Claude will ask what to write before generating the report.
 
 ## Project prefixes tracked
 
@@ -49,13 +50,15 @@ The last section — "No que estou trabalhando" — is always left blank. Fill i
 |------|----|
 | To Validate (Homologação/Preprod) | `65525b515bd021894e00dcfb` |
 | To Validate (Produção) | `654be3c561f40a9dc0f49467` |
+| Doing (Apenas 1, Informar Data) | `654526d8e848f7b27e32f3e7` |
+| Doing (PAUSED/BLOCKED) | `6787e6feba62de1d7fd9ef3c` |
 
 Board ID: `65452685593555d57aa6aaf7`
 
 ## Usage
 
 ```
-/relatorio
+/trello-report
 ```
 
 On Mondays, Claude will ask whether you want Sunday's report or Friday's.
