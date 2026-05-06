@@ -4,22 +4,19 @@ Gera o relatório de entrega do dia anterior com base nas movimentações do Tre
 
 ### 1. Calcular datas
 
-Use Bash para calcular as datas em UTC, considerando que o usuário está em America/Sao_Paulo (UTC-3). "Ontem" = dia anterior completo no fuso de Brasília.
+Use Bash para calcular as datas em UTC. Brasília é UTC-3 fixo (sem horário de verão desde 2019). "Ontem" = dia anterior completo no fuso de Brasília.
+
+Execute o comando abaixo — começa com `date`, que é auto-permitido pelo Claude Code:
 
 ```bash
-ONTEM_INICIO=$(TZ=America/Sao_Paulo date -d "yesterday 00:00:00" --utc +%Y-%m-%dT%H:%M:%S.000Z)
-ONTEM_FIM=$(TZ=America/Sao_Paulo date -d "today 00:00:00" --utc +%Y-%m-%dT%H:%M:%S.000Z)
-ONTEM_LABEL=$(TZ=America/Sao_Paulo date -d "yesterday" +%d/%m/%Y)
-echo "$ONTEM_INICIO $ONTEM_FIM $ONTEM_LABEL"
+date -u -d "$(date -d 'yesterday' +%Y-%m-%d) 03:00:00" +%Y-%m-%dT%H:%M:%S.000Z && date -u -d "$(date +%Y-%m-%d) 03:00:00" +%Y-%m-%dT%H:%M:%S.000Z && date -d "yesterday" +%d/%m/%Y && date +%u
 ```
+
+A saída tem 4 linhas: ONTEM_INICIO, ONTEM_FIM, ONTEM_LABEL, DAY_OF_WEEK.
 
 ### 2. Buscar actions do board
 
-Chame a Trello REST API para obter movimentações de cards no board principal:
-
-```bash
-curl -s "https://api.trello.com/1/boards/65452685593555d57aa6aaf7/actions?filter=updateCard:idList&since=${ONTEM_INICIO}&before=${ONTEM_FIM}&limit=1000&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
-```
+Use o MCP tool `trello_get_recent_activity` com `boardId=65452685593555d57aa6aaf7` e `limit=300`. Esse limite cobre ~6 dias de atividade do board com folga suficiente para capturar todas as movimentações de ontem.
 
 ### 3. Filtrar e processar
 
@@ -49,18 +46,24 @@ Classifique cada card pelo prefixo no início do nome:
 | `[WEBCHAT-GENERICO]` | Webchat Genérico |
 | `[WEBCHAT-ITAU]` | Webchat Itaú |
 
-Cards sem prefixo reconhecido: listar em grupo `[OUTROS]`.
+**Regra para prefixos ambíguos ou não reconhecidos:**
+
+Se um card não começar com nenhum dos prefixos da tabela acima (ex: começa com número de ticket como `[1445][WEBCHAT]`, variação de capitalização, ou prefixo desconhecido), antes de classificar:
+
+1. Busque os detalhes completos do card via API:
+   ```bash
+   curl -s "https://api.trello.com/1/cards/{cardId}?fields=name,desc,labels&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
+   ```
+2. Leia o nome completo, descrição e labels para inferir o projeto. Use palavras-chave no texto (ex: "Itaú", "Genérico", "monorepo", "portal", "webchat") para determinar a classificação correta.
+3. Se conseguir inferir com confiança, classifique no projeto correspondente sem perguntar.
+4. **Somente se ainda não conseguir determinar** com clareza, pergunte ao usuário antes de gerar o relatório:
+   > *"O card '[nome]' não tem prefixo reconhecido e não consegui identificar o projeto pela descrição. Qual projeto é esse? (WEBCHAT-GENERICO, WEBCHAT-ITAU, PORTAL-GENERICO, PORTAL-BRADESCO, PORTAL-ITAU, PORTAL-EMPRESA, DESIGN-SYSTEM, MONOREPO)"*
+
+Se houver múltiplos cards ambíguos, agrupe todos na mesma pergunta.
 
 ### 5. Verificar card em Doing atribuído ao usuário
 
-Busque os cards abertos atribuídos ao usuário autenticado e filtre pelos que estão nas listas de Doing:
-
-```bash
-curl -s "https://api.trello.com/1/members/me/cards?filter=open&fields=name,shortLink,idList&key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}"
-```
-
-Do resultado, filtre apenas cards onde `idList` seja:
-- `654526d8e848f7b27e32f3e7` → Doing (Apenas 1, Informar Data)
+Use o MCP tool `trello_get_cards_by_list` com `listId=654526d8e848f7b27e32f3e7` (Doing — Apenas 1, Informar Data). Essa lista foi projetada para ter no máximo 1 card, então a resposta é mínima.
 
 - Se encontrar card(s): use o primeiro para preencher a seção "No que estou trabalhando" com nome e link
 - Se não encontrar nenhum: pergunte ao usuário — *"Não há card em Doing atribuído a você. O que quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório

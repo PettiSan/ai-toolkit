@@ -1,0 +1,5 @@
+# Credenciais — nunca commitar
+claude/settings.local.json
+
+# Gerado pelo sistema
+*.bak
