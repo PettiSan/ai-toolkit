@@ -63,10 +63,12 @@ Se houver múltiplos cards ambíguos, agrupe todos na mesma pergunta.
 
 ### 5. Verificar card em Doing atribuído ao usuário
 
-Use o MCP tool `trello_get_cards_by_list` com `listId=654526d8e848f7b27e32f3e7` (Doing — Apenas 1, Informar Data). Essa lista foi projetada para ter no máximo 1 card, então a resposta é mínima.
+Member ID do usuário: `64a4994dd6033175ad5e5a07`
 
-- Se encontrar card(s): use o primeiro para preencher a seção "No que estou trabalhando" com nome e link
-- Se não encontrar nenhum: pergunte ao usuário — *"Não há card em Doing atribuído a você. O que quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório
+Use o MCP tool `trello_get_cards_by_list` com `listId=654526d8e848f7b27e32f3e7` (Doing — Apenas 1, Informar Data). A lista pode ter cards de vários membros — filtre pelo `idMembers` que contenha `64a4994dd6033175ad5e5a07`.
+
+- Se encontrar card do usuário: use-o para preencher a seção "No que estou trabalhando" com nome e link
+- Se não encontrar nenhum card do usuário: pergunte — *"Não há card em Doing atribuído a você. O que quer colocar na seção 'No que estou trabalhando'?"* — e aguarde a resposta antes de gerar o relatório
 
 ### 6. Gerar o relatório
 
