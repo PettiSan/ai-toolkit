@@ -14,8 +14,13 @@ Queries the Trello board for all cards moved to the target lists the day before,
 🏗️ *Para Homologação (Staging)*
 
 *[PORTAL-ITAU]* (2 cards)
-• Card title here
+```
+• Primeiro card
   🔗 https://trello.com/c/...
+
+• Segundo card
+  🔗 https://trello.com/c/...
+```
 
 🚀 *Para Produção*
 
@@ -24,8 +29,10 @@ _(nenhum card ontem)_
 ✅ *Done*
 
 *[MONOREPO]* (1 card)
+```
 • Card title here
   🔗 https://trello.com/c/...
+```
 
 📦 *Total: 3 cards entregues ontem*
 
@@ -34,6 +41,12 @@ _(nenhum card ontem)_
 • Card currently in Doing
   🔗 https://trello.com/c/...
 ```
+
+Formatting rules:
+- Each prefix group's cards are wrapped in a ` ``` ` block (WhatsApp monospace)
+- Blank line between cards within a block
+- Blank line between different prefix groups
+- When a section has no cards: `_(nenhum card ontem)_` without a ` ``` ` block
 
 The last section — "No que estou trabalhando" — is auto-filled from the current Doing card. If no card is found in Doing, Claude will ask what to write before generating the report.
 
