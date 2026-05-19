@@ -1,5 +1,8 @@
 # Credenciais — nunca commitar
 claude/settings.local.json
 
+# Per-project runtime do Claude Code Desktop
+.claude/
+
 # Gerado pelo sistema
 *.bak

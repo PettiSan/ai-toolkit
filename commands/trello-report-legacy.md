@@ -1,3 +1,20 @@
+---
+description: ⚠️ Versão legacy — só pra webchats (lovabledue-chat, chat-mm-itau). Canônica vive em smartcob-monorepo/.claude/commands/trello-report.md.
+---
+
+# /trello-report-legacy
+
+> ⚠️ **Versão canônica vive em `smartcob-monorepo/.claude/commands/trello-report.md`.**
+>
+> Esta cópia (ai-toolkit) continua aqui pra cobrir os webchats (`lovabledue-chat`, `chat-mm-itau`) até a migração deles pro monorepo, e como registro pessoal. Foi renomeada de `trello-report.md` pra `trello-report-legacy.md` em maio/2026 pra evitar duplicação no autocomplete do Claude Code quando trabalhando no monorepo.
+>
+> Esta versão **não recebe** as melhorias da versão do monorepo:
+>
+> - Inclusão da lista `Done` como destino válido (cards de doc que pulam validação)
+> - Agregação automática de sexta + sábado + domingo no relatório de segunda (sem perguntar)
+> - Leitura de `TRELLO_MEMBER_ID` via env var
+> - Header `✅ Finalizados` separado de `🚀 Para Produção`
+
 Gera o relatório de entrega do dia anterior com base nas movimentações do Trello.
 
 ## Passos
