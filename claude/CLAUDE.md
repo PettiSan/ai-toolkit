@@ -36,11 +36,13 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Sempre mostrar o diff e aguardar aprovação explícita** antes de commitar — em qualquer projeto.
 
-**Mensagens de commit sempre em inglês**, seguindo o padrão do repo — independentemente do idioma da conversa. Verificar `git log` antes de escrever a mensagem.
+**Mensagens de commit sempre em inglês** — independentemente do idioma da conversa e do que estiver no `git log`. Verificar `git log` apenas para seguir o *formato* do repo (tipo, escopo, estrutura), nunca para inferir idioma.
 
 **Nunca adicionar Co-Authored-By** nas mensagens de commit.
 
 **GitHub via MCP** quando SSH não estiver disponível: usar sempre `push_files` para múltiplos arquivos. Nunca usar `create_or_update_file` repetidamente.
+
+**Exploração de arquivos: preferir as tools dedicadas `Glob` (encontrar arquivos por padrão) e `Read` (ler conteúdo) em vez de `cd`/`ls`/`find`/`cat` no Bash.** São read-only, mais rápidas e não disparam prompt de permissão. Só usar Bash para navegação/listagem quando não houver tool equivalente — e, nesse caso, evitar `2>/dev/null` e encadeamento `&&`/`||`, que impedem o auto-allow de comandos read-only.
 
 ---
 
