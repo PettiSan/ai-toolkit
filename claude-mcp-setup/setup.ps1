@@ -129,6 +129,21 @@ Get-ChildItem -Path $repoLaunchers -Filter "*.ps1" | ForEach-Object {
     Write-OK "copied $($_.Name)"
 }
 
+# --- 5b. Register orphan-cleanup scheduled task ---
+Write-Step "Registering MCP orphan-cleanup scheduled task"
+
+$cleanupScript = Join-Path $dest "cleanup-mcp-orphans.ps1"
+if (Test-Path $cleanupScript) {
+    # Register-ScheduledTask returns Access Denied in some contexts (writes to the task
+    # library root); schtasks.exe registers reliably in the current-user context.
+    $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $cleanupScript"
+    & schtasks.exe /Create /TN "Claude MCP orphan cleanup" /TR $tr /SC HOURLY /MO 4 /F /IT /RL LIMITED | Out-Null
+    if ($LASTEXITCODE -eq 0) { Write-OK "scheduled task 'Claude MCP orphan cleanup' (every 4h)" }
+    else { Write-Warn "could not register scheduled task (exit $LASTEXITCODE) -- see INSTALL.md to create it manually" }
+} else {
+    Write-Warn "cleanup-mcp-orphans.ps1 not found in $dest -- skipping task registration"
+}
+
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
 Write-Step "Updating Claude Desktop config"
 
