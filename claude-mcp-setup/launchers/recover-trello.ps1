@@ -1,12 +1,10 @@
 # recover-trello.ps1
-# Recuperacao on-demand do MCP do Trello apos suspend (sintoma: 401 em chamadas que antes funcionavam).
+# Forca o respawn do MCP do Trello: mata todos os processos node do Trello para o Claude Code
+# subir novos na proxima chamada. Util para limpar processos zumbis/duplicados.
 #
-# Como funciona: o processo do MCP fica vivo-mas-zumbi depois do suspend. O Claude Code ve
-# um servidor "vivo" e nao respawna. Este script MATA os processos do Trello; na proxima
-# chamada ao Trello dentro do chat, o Claude Code respawna um processo limpo (comportamento validado).
-#
-# Uso: rode este script, depois retente qualquer acao do Trello no chat travado.
-#      NAO precisa abrir sessao nova nem reiniciar o Desktop.
+# ATENCAO: NAO conserta o 401 pos-suspend neste setup. Esse 401 vem do .mcp.json (npx) subir
+# sem token porque TRELLO_API_KEY/TRELLO_TOKEN nao estao no ambiente do Windows; o respawn
+# tambem sobe sem token. Para esse caso, abra uma sessao nova.
 
 $ErrorActionPreference = "Stop"
 $log = "$env:USERPROFILE\.claude\mcp-launchers\recover-trello.log"

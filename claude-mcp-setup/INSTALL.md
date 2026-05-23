@@ -122,56 +122,50 @@ The launchers use specific patterns to avoid Windows GUI-spawn pitfalls:
 
 - **Logs in `<name>.log` and `<name>-node-stderr.log`** for diagnosis. Contain no secrets (only timestamps, lengths, exit codes, stderr from node).
 
-## MCP process leak + recovery (suspend/resume)
+## Trello 401 after suspend + the MCP process leak
 
-**Symptom:** after the machine suspends/resumes, the Trello MCP starts returning `401` on calls
-that worked earlier in the *same* session. A fresh session works; the stuck one doesn't.
+Two **separate** issues were found here — don't conflate them.
 
-**Root cause:** on resume the MCP `node` process is alive-but-zombie (broken stdio pipe) and
-Claude Code, seeing a "live" server, won't respawn it. Worse, each suspend/close leaks the child
-process as an orphan instead of killing it, and they pile up (observed: 90 live Trello `node`
-processes at once). Amplified by the Windows + Desktop stack (npx spawns via a `cmd.exe` shim, a
-tree that doesn't cascade on kill) and by suspend. Rare on native Mac/Linux. The real fix is
-upstream (the host reaping MCP children on session end / resume).
+### Issue 1 — Trello returns 401 after suspend/resume (token not reaching the npx server)
 
-Two spawn paths coexist (token comes from different sources):
-- Desktop chat → `trello.ps1` → node directly, token from CredMan.
-- Claude Code inside a repo → repo `.mcp.json` → `npx -y @delorenj/mcp-server-trello`, token via
-  `${TRELLO_API_KEY}` / `${TRELLO_TOKEN}` from the environment.
+**Symptom:** after the machine suspends/resumes (or Desktop relaunches), the Trello MCP returns
+`401` on calls that worked earlier in the same session. A fresh session works.
 
-**Validated behavior:** Claude Code respawns the MCP on demand — if the process is dead, the next
-call spawns a clean one. That's why recovery = kill the zombie.
+**Root cause:** the repo `.mcp.json` runs Trello via `npx -y @delorenj/mcp-server-trello` and reads
+the token from `${TRELLO_API_KEY}` / `${TRELLO_TOKEN}` **in the environment**. On Windows those env
+vars are not persisted (User and Machine scope are empty), so when Claude Desktop relaunches
+without them, the npx server spawns **token-less** → 401. The CredMan token is still valid — the
+npx path simply doesn't read CredMan. Killing/respawning does **not** help: the respawn is
+token-less too. (Verified: CredMan token → HTTP 200; Windows env `TRELLO_*` → empty.)
 
-### Recover a stuck session (on-demand) — `launchers/recover-trello.ps1`
+**Recovery (current choice):** open a new session — it re-resolves the token at start.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.claude\mcp-launchers\recover-trello.ps1"
-```
+**Optional real fix (not applied, by choice):** persist `TRELLO_API_KEY` / `TRELLO_TOKEN` (and
+`FIGMA_API_KEY` / `TRELLO_MEMBER_ID`) as Windows **User** env vars from the CredMan values, then
+restart Desktop. Trade-off: the token then lives in an env var (less protected than CredMan-only).
 
-Then retry any Trello action in the same chat — Claude Code respawns a clean process. No new
-session, no Desktop restart needed.
+### Issue 2 — MCP node processes leak and accumulate
 
-### Periodic cleanup — `launchers/cleanup-mcp-orphans.ps1` + scheduled task
+Each suspend/close leaks the MCP `node` child as an orphan instead of killing it; they pile up
+(observed: 90 live Trello node processes at once). Amplified by the Windows + Desktop stack (npx →
+`cmd.exe` shim tree that doesn't cascade on kill). Rare on native Mac/Linux. The real fix is
+upstream (host reaping MCP children on session end / resume).
 
-Kills orphaned MCP `node` processes (dead parent) — always safe, never touches a live session.
-`setup.ps1` registers a Windows Task Scheduler task ("Claude MCP orphan cleanup", every 4h):
+- `launchers/cleanup-mcp-orphans.ps1` + scheduled task **"Claude MCP orphan cleanup"** (registered
+  by `setup.ps1`, every 4h) — kills orphaned MCP node processes (dead parent). Always safe, never
+  touches a live session.
+  ```powershell
+  schtasks /Query /TN "Claude MCP orphan cleanup" /FO LIST   # inspect
+  schtasks /Run   /TN "Claude MCP orphan cleanup"            # run now
+  ```
+  > `Register-ScheduledTask` returns "Access denied" in some contexts (writes to the task library
+  > root). Use `schtasks.exe`, which registers in the current-user context.
+- `launchers/recover-trello.ps1` — force-kills all Trello node processes so Claude Code respawns
+  them. Useful to clear zombies/duplicates, **but does not fix Issue 1** (the respawn is also
+  token-less on this setup).
 
-```powershell
-schtasks /Query /TN "Claude MCP orphan cleanup" /FO LIST   # inspect
-schtasks /Run   /TN "Claude MCP orphan cleanup"            # run now
-# recreate manually:
-schtasks /Create /TN "Claude MCP orphan cleanup" /F /SC HOURLY /MO 4 /IT /RL LIMITED `
-  /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File C:\Users\YOURUSER\.claude\mcp-launchers\cleanup-mcp-orphans.ps1"
-```
-
-> `Register-ScheduledTask` returns "Access denied" in some contexts (writes to the task library
-> root). Use `schtasks.exe`, which registers in the current-user context.
-
-Limitations: (1) cleanup only catches dead-parent orphans — ones abandoned on suspend whose
-parent (the session) is still open only become orphans when the session closes, and the next run
-reaps them. (2) `schtasks /SC HOURLY` has no "start when available", so a tick missed during
-suspend only fires at the next 4h interval, not on resume. For the acute case use
-`recover-trello.ps1`.
+> Note: the cleanup only catches dead-parent orphans. Ones abandoned on suspend whose parent (the
+> session) is still open only become orphans when the session closes; the next run reaps them.
 
 ## Known limitations
 
