@@ -122,27 +122,40 @@ The launchers use specific patterns to avoid Windows GUI-spawn pitfalls:
 
 - **Logs in `<name>.log` and `<name>-node-stderr.log`** for diagnosis. Contain no secrets (only timestamps, lengths, exit codes, stderr from node).
 
-## Trello 401 after suspend + the MCP process leak
+## Trello 401 + the MCP process leak
 
 Two **separate** issues were found here — don't conflate them.
 
-### Issue 1 — Trello returns 401 after suspend/resume (token not reaching the npx server)
+### Issue 1 — Trello returns 401 (revoked/expired token in CredMan)
 
-**Symptom:** after the machine suspends/resumes (or Desktop relaunches), the Trello MCP returns
-`401` on calls that worked earlier in the same session. A fresh session works.
+**Symptom:** Trello MCP calls return `401`. May surface after a relaunch or suspend/resume, or as
+"it worked yesterday and now it doesn't".
 
-**Root cause:** the repo `.mcp.json` runs Trello via `npx -y @delorenj/mcp-server-trello` and reads
-the token from `${TRELLO_API_KEY}` / `${TRELLO_TOKEN}` **in the environment**. On Windows those env
-vars are not persisted (User and Machine scope are empty), so when Claude Desktop relaunches
-without them, the npx server spawns **token-less** → 401. The CredMan token is still valid — the
-npx path simply doesn't read CredMan. Killing/respawning does **not** help: the respawn is
-token-less too. (Verified: CredMan token → HTTP 200; Windows env `TRELLO_*` → empty.)
+**Root cause:** on Desktop the Trello MCP reads its token from **Windows Credential Manager**
+(`trello.ps1` → `Get-StoredCredential claude-trello-api-key` / `claude-trello-token`), **not** from
+the repo `.mcp.json` or environment variables. So a `401` almost always means the token stored in
+CredMan is **revoked or expired** — not a transport/env problem. (Real case: a token cleanup
+revoked the leaked tokens, including the valid one in CredMan; a direct `curl` against the Trello
+API went from `200` to `401`.) Restarting Desktop or killing/respawning the node process does
+**not** help — they re-read the same revoked token.
 
-**Recovery (current choice):** open a new session — it re-resolves the token at start.
+**Recovery:** re-store a *valid* token in CredMan, then restart Desktop:
+```powershell
+Import-Module CredentialManager
+$secure = Read-Host "Paste valid Trello token" -AsSecureString
+New-StoredCredential -Target "claude-trello-token" `
+    -UserName "claude" -SecurePassword $secure -Persist LocalMachine
+```
+Then **quit Claude Desktop completely** (tray → Quit) and reopen — `trello.ps1` re-reads CredMan on
+launch. Verify the token first with a direct call (`200` = good, `401` = still revoked):
+```powershell
+curl "https://api.trello.com/1/members/me?key=<API_KEY>&token=<TOKEN>"
+```
 
-**Optional real fix (not applied, by choice):** persist `TRELLO_API_KEY` / `TRELLO_TOKEN` (and
-`FIGMA_API_KEY` / `TRELLO_MEMBER_ID`) as Windows **User** env vars from the CredMan values, then
-restart Desktop. Trade-off: the token then lives in an env var (less protected than CredMan-only).
+> **WSL CLI is a separate path.** The `claude` CLI under WSL reads `TRELLO_API_KEY` /
+> `TRELLO_TOKEN` from `~/.zshenv` (plaintext, by choice to avoid GPG), resolved by the repo
+> `.mcp.json`. If you rotate the Trello token, update **both** CredMan (Desktop) and `~/.zshenv`
+> (WSL CLI).
 
 ### Issue 2 — MCP node processes leak and accumulate
 
@@ -160,9 +173,9 @@ upstream (host reaping MCP children on session end / resume).
   ```
   > `Register-ScheduledTask` returns "Access denied" in some contexts (writes to the task library
   > root). Use `schtasks.exe`, which registers in the current-user context.
-- `launchers/recover-trello.ps1` — force-kills all Trello node processes so Claude Code respawns
-  them. Useful to clear zombies/duplicates, **but does not fix Issue 1** (the respawn is also
-  token-less on this setup).
+- `launchers/recover-trello.ps1` — force-kills all Trello node processes so they respawn. Useful
+  to clear zombies/duplicates, **but does not fix Issue 1** (the respawn re-reads the same CredMan
+  token; if that token is revoked it's still 401).
 
 > Note: the cleanup only catches dead-parent orphans. Ones abandoned on suspend whose parent (the
 > session) is still open only become orphans when the session closes; the next run reaps them.

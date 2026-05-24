@@ -1,10 +1,11 @@
 # recover-trello.ps1
-# Forca o respawn do MCP do Trello: mata todos os processos node do Trello para o Claude Code
-# subir novos na proxima chamada. Util para limpar processos zumbis/duplicados.
+# Forca o respawn do MCP do Trello: mata todos os processos node do Trello para subirem
+# novos na proxima chamada. Util SOMENTE para limpar processos zumbis/duplicados (vazamento).
 #
-# ATENCAO: NAO conserta o 401 pos-suspend neste setup. Esse 401 vem do .mcp.json (npx) subir
-# sem token porque TRELLO_API_KEY/TRELLO_TOKEN nao estao no ambiente do Windows; o respawn
-# tambem sobe sem token. Para esse caso, abra uma sessao nova.
+# ATENCAO: NAO conserta 401. No Desktop o token do Trello vem do Windows Credential Manager
+# (trello.ps1 -> Get-StoredCredential), nao do ambiente. Um 401 significa token revogado/expirado;
+# o conserto e regravar um token valido no CredMan (New-StoredCredential) + restart do Desktop,
+# nao matar processos. O respawn rele o mesmo token do CredMan.
 
 $ErrorActionPreference = "Stop"
 $log = "$env:USERPROFILE\.claude\mcp-launchers\recover-trello.log"
