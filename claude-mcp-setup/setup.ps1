@@ -197,13 +197,7 @@ if ($SkipDenyRules) {
         "Read(**/claude_desktop_config.json)",
         "Read(**/mcp-launchers/**)",
         "Read(**/.env)",
-        "Read(**/.env.*)",
-        "Bash(cat:**/.env)",
-        "Bash(cat:**/.env.*)",
-        "Bash(Get-Content:**/.env)",
-        "Bash(Get-Content:**/.env.*)",
-        "Bash(type:**/.env)",
-        "Bash(type:**/.env.*)"
+        "Read(**/.env.*)"
     )
 
     if (Test-Path $settingsPath) {

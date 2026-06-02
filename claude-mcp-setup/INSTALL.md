@@ -185,5 +185,5 @@ upstream (host reaping MCP children on session end / resume).
 - **Claude Code CLI** has its own auth config separate from Desktop — `~/.claude/settings.json` and `.mcp.json`. This setup is **Desktop-only**.
 - **WSL** can't access Windows CredMan (DPAPI is Win32-only). For `gh` inside WSL, run `gh auth login` — it stores in `~/.config/gh/hosts.yml` mode 0600.
 - **Deny rules with absolute Windows paths in `settings.json` don't block** — known Anthropic bug [#34741](https://github.com/anthropics/claude-code/issues/34741). The setup uses glob patterns (`Read(**/foo)`) which work.
-- **Deny rules cover only built-in tools, not Bash/PowerShell**. `Read(.env)` denied doesn't block `cat .env`. The setup also adds `Bash(cat:**/.env)` etc. for the most common bypass patterns.
+- **Deny rules cover only built-in tools, not Bash/PowerShell**. `Read(.env)` denied doesn't block `cat .env`.
 - **`@modelcontextprotocol/server-github` is deprecated** (npm shows "Package no longer supported"). Replacement is `ghcr.io/github/github-mcp-server` (Docker container). Migration TBD.
