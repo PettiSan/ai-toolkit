@@ -18,20 +18,10 @@ ai-toolkit/
 ├── claude/
 │   ├── CLAUDE.md                  # Instruções globais do Claude Code (~/.claude/CLAUDE.md)
 │   └── settings.json              # Permissões, plugins e configurações (~/.claude/settings.json)
-├── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
-│   └── trello-report-legacy.md    # versão legacy — só pra webchats
-└── trello-report/                 # Docs do command legacy (README + SETUP)
+└── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
 ```
 
 > **Credenciais MCP** (tokens de API) nunca ficam neste repo. No Linux/WSL ficam em env vars; no Windows ficam no Windows Credential Manager (DPAPI) via o setup em `claude-mcp-setup/`.
-
----
-
-## Commands
-
-| Command | Descrição | Docs |
-|---------|-----------|------|
-| [`/trello-report-legacy`](./trello-report/README.md) | Relatório diário de entrega do Trello, formatado para WhatsApp. ⚠️ Versão legacy — só pra webchats. Canônica `/trello-report` vive no `smartcob-monorepo` (ver seção [Relação com o smartcob-monorepo](#relação-com-o-smartcob-monorepo) no final). | [Setup](./trello-report/SETUP.md) |
 
 ---
 
@@ -85,19 +75,4 @@ Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem 
 
 ## Relação com o smartcob-monorepo
 
-Em maio/2026, o time decidiu versionar skills compartilhadas dentro do próprio repo do projeto. O `smartcob-monorepo` agora tem:
-
-- `.claude/commands/brainstorming.md` — skill nova, criada do zero pro fluxo de Card Complexo (não existe neste toolkit)
-- `.claude/commands/trello-report.md` — versão atualizada do `/trello-report` deste toolkit, com:
-  - Inclusão da lista `Done` como destino válido (cards de doc que pulam validação)
-  - Agregação automática de **sexta + sábado + domingo** no relatório de segunda-feira (sem perguntar)
-  - Leitura de `TRELLO_MEMBER_ID` via env var (permite o skill funcionar pra qualquer dev, não só pra um membro hardcoded)
-  - Nova seção `✅ Finalizados` separada de `🚀 Para Produção` na saída do WhatsApp
-- `.mcp.json` na raiz — configuração compartilhada dos MCP servers (Trello via `@delorenj/mcp-server-trello`, Figma)
-
-**Daqui pra frente, a versão canônica do `/trello-report` é a do monorepo.** Esta cópia (`/trello-report-legacy`) continua aqui por dois motivos:
-
-1. **Cobrir os webchats** (`lovabledue-chat`, `chat-mm-itau`) até a migração deles pro monorepo
-2. **Histórico pessoal** — registro do que foi feito antes do trabalho descer pro projeto compartilhado
-
-Esta cópia não recebe mais atualizações regulares. Quando precisar do `/trello-report` no contexto do `smartcob-monorepo`, use o do monorepo.
+A versão canônica do `/trello-report` vive em `smartcob-monorepo/.claude/commands/trello-report.md`. O toolkit não mantém mais uma cópia local desse comando.
