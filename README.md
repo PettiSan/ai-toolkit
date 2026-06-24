@@ -17,9 +17,17 @@ ai-toolkit/
 │   └── setup.ps1
 ├── claude/
 │   ├── CLAUDE.md                  # Instruções globais do Claude Code (~/.claude/CLAUDE.md)
-│   └── settings.json              # Permissões, plugins e configurações (~/.claude/settings.json)
+│   ├── settings.json              # Settings do CLI no WSL (symlink p/ ~/.claude/settings.json)
+│   ├── settings.windows.json      # Snapshot do settings.json do Claude Desktop (Windows) — backup
+│   └── hooks/                     # Hooks do Claude Code (deploy p/ ~/.claude/hooks/)
 └── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
 ```
+
+> **Dois settings, dois runtimes.** `claude/settings.json` é o do **CLI no WSL** (symlinkado).
+> `claude/settings.windows.json` é um **snapshot manual** do `~/.claude/settings.json` do **Claude
+> Desktop no Windows** — esse arquivo do Desktop não é symlink, então o snapshot é a única cópia
+> versionada. Re-sincronize à mão quando mudar o settings do Desktop. Restaure num PC novo com
+> `claude-mcp-setup/setup.ps1 -RestoreSettings` (faz backup do existente antes).
 
 > **Credenciais MCP** (tokens de API) nunca ficam neste repo. No Linux/WSL ficam em env vars; no Windows ficam no Windows Credential Manager (DPAPI) via o setup em `claude-mcp-setup/`.
 

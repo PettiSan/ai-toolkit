@@ -21,13 +21,20 @@
 .PARAMETER SkipDenyRules
     Skip applying permissions.deny rules to settings.json.
 
+.PARAMETER RestoreSettings
+    Restore the full Desktop settings.json from the versioned snapshot
+    (claude/settings.windows.json). Backs up any existing settings.json first.
+    Use on a fresh machine. Off by default so a normal run never clobbers a live
+    settings.json that is newer than the snapshot.
+
 .NOTES
     After this script: quit Claude Desktop completely (tray -> Quit) and reopen.
 #>
 [CmdletBinding()]
 param(
     [switch]$SkipPackages,
-    [switch]$SkipDenyRules
+    [switch]$SkipDenyRules,
+    [switch]$RestoreSettings
 )
 
 $ErrorActionPreference = "Stop"
@@ -142,6 +149,41 @@ if (Test-Path $cleanupScript) {
     else { Write-Warn "could not register scheduled task (exit $LASTEXITCODE) -- see INSTALL.md to create it manually" }
 } else {
     Write-Warn "cleanup-mcp-orphans.ps1 not found in $dest -- skipping task registration"
+}
+
+# --- 5c. Deploy Claude Code hooks ---
+Write-Step "Deploying Claude Code hooks"
+
+$hooksDest = "$env:USERPROFILE\.claude\hooks"
+$repoHooks = Join-Path $PSScriptRoot "..\claude\hooks"
+if (Test-Path $repoHooks) {
+    New-Item -ItemType Directory -Path $hooksDest -Force | Out-Null
+    Get-ChildItem -Path $repoHooks -Filter "*.js" | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $hooksDest -Force
+        Write-OK "deployed hook $($_.Name)"
+    }
+} else {
+    Write-Warn "claude/hooks not found at $repoHooks -- skipping hook deploy"
+}
+
+# --- 5d. Restore full settings.json from snapshot (opt-in) ---
+if ($RestoreSettings) {
+    Write-Step "Restoring settings.json from snapshot (-RestoreSettings)"
+
+    $settingsLive = "$env:USERPROFILE\.claude\settings.json"
+    $snapshot = Join-Path $PSScriptRoot "..\claude\settings.windows.json"
+    if (-not (Test-Path $snapshot)) {
+        Write-Err "snapshot not found at $snapshot"
+        exit 1
+    }
+    New-Item -ItemType Directory -Path (Split-Path $settingsLive) -Force | Out-Null
+    if (Test-Path $settingsLive) {
+        $bak = "$settingsLive.$(Get-Date -Format 'yyyyMMdd-HHmmss').bak"
+        Copy-Item -Path $settingsLive -Destination $bak -Force
+        Write-OK "backed up existing settings.json -> $(Split-Path $bak -Leaf)"
+    }
+    Copy-Item -Path $snapshot -Destination $settingsLive -Force
+    Write-OK "restored settings.json from snapshot"
 }
 
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
