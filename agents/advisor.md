@@ -1,6 +1,6 @@
 ---
 name: advisor
-description: Consultor arquitetural sob demanda (read-only, global). Recebe um briefing curto — contexto do card + trecho de código + as 2–3 opções em jogo — e devolve conselho: análise, trade-offs e recomendação. Nunca entrega código pronto. Serve para destravar uma decisão de arquitetura no meio da execução sem fazer upgrade da sessão inteira para Opus.
+description: Consultor arquitetural sob demanda (read-only, global). Recebe um briefing curto — contexto do card + trecho de código + as 2–3 opções em jogo — e devolve conselho (análise, trade-offs e recomendação). Nunca entrega código pronto. Serve para destravar uma decisão de arquitetura no meio da execução sem fazer upgrade da sessão inteira para Opus.
 tools: Read, Grep, Glob
 model: opus
 ---
