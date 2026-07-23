@@ -7,6 +7,7 @@ CLAUDE="$HOME/.claude"
 echo "==> Configurando Claude Code a partir do ai-toolkit..."
 
 mkdir -p "$CLAUDE"
+mkdir -p "$CLAUDE/agents"
 
 ensure_symlink() {
     local target="$1"
@@ -34,6 +35,7 @@ ensure_symlink() {
 ensure_symlink "$REPO/commands"             "$CLAUDE/commands"      "commands/"
 ensure_symlink "$REPO/claude/CLAUDE.md"     "$CLAUDE/CLAUDE.md"     "CLAUDE.md"
 ensure_symlink "$REPO/claude/settings.json" "$CLAUDE/settings.json" "settings.json"
+ensure_symlink "$REPO/agents/advisor.md"    "$CLAUDE/agents/advisor.md" "agents/advisor.md"
 
 echo ""
 echo "==> Pronto! Claude Code está linkado ao ai-toolkit."
