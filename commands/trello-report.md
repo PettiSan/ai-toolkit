@@ -69,7 +69,7 @@ formatado para colar no WhatsApp).
 - As 3 seções (Revisão/Homologação/Produção) são categorias distintas — cada card aparece em
   **uma só**, na lista mais avançada que atingiu no período (ordem Produção > Homologação >
   Revisão). Seção sem nenhum card no período é omitida inteira.
-- Prefixos de projeto: [`smartcob-monorepo/docs/governanca/trello-refs.md`](../../../smartcob-monorepo/docs/governanca/trello-refs.md)
+- Prefixos de projeto: [`smartcob-monorepo/docs/governanca/trello-refs.md`](../../smartcob-monorepo/docs/governanca/trello-refs.md)
   é a fonte real — a tabela vem **duplicada** dentro do script (`PREFIXES`/`PREFIX_KEYWORDS`)
   porque este comando roda de qualquer diretório, fora do monorepo. Se a tabela mudar lá,
   atualizar também as constantes no script.
