@@ -173,9 +173,6 @@ upstream (host reaping MCP children on session end / resume).
   ```
   > `Register-ScheduledTask` returns "Access denied" in some contexts (writes to the task library
   > root). Use `schtasks.exe`, which registers in the current-user context.
-- `launchers/recover-trello.ps1` — force-kills all Trello node processes so they respawn. Useful
-  to clear zombies/duplicates, **but does not fix Issue 1** (the respawn re-reads the same CredMan
-  token; if that token is revoked it's still 401).
 
 > Note: the cleanup only catches dead-parent orphans. Ones abandoned on suspend whose parent (the
 > session) is still open only become orphans when the session closes; the next run reaps them.
