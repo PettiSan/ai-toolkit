@@ -83,4 +83,4 @@ Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem 
 
 ## Relação com o smartcob-monorepo
 
-A versão canônica do `/trello-report` vive em `smartcob-monorepo/.claude/commands/trello-report.md`. O toolkit não mantém mais uma cópia local desse comando.
+A versão canônica do `/trello-report` vive aqui em `commands/trello-report.md` — é um comando global (roda de qualquer projeto), então a tabela de prefixos de card fica embutida no próprio arquivo em vez de referenciar `smartcob-monorepo/docs/governanca/trello-refs.md` por path relativo. Se um prefixo mudar lá, atualize a tabela embutida aqui manualmente (duplicação assumida deliberadamente).
