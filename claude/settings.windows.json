@@ -204,7 +204,6 @@
       "Bash(ls *)",
       "Bash(which *)",
       "Bash(wsl -e which *)",
-      "Bash(jq *)",
       "Bash(date *)",
       "Bash(wc *)",
       "Edit(**/.claude/CLAUDE.md)",
