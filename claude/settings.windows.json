@@ -203,6 +203,8 @@
       "Write(**/.claude/commands/**)",
       "Edit(**/.claude/agents/**)",
       "Write(**/.claude/agents/**)",
+      "Edit(C:\\Users\\filip\\OneDrive\\Documentos\\Docs\\ClaudeDocs\\**)",
+      "Write(C:\\Users\\filip\\OneDrive\\Documentos\\Docs\\ClaudeDocs\\**)",
       "Read(C:\\Users\\filip\\AppData\\Local\\Temp\\handoff-*.md)",
       "Write(C:\\Users\\filip\\AppData\\Local\\Temp\\handoff-*.md)",
       "Edit(C:\\Users\\filip\\AppData\\Local\\Temp\\handoff-*.md)"
