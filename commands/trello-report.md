@@ -11,6 +11,16 @@ Gera o relatório de entrega do dia anterior com base nas movimentações do Tre
 
 ## Passos
 
+### 0. Checar `jq` — gate obrigatório, não pule
+
+```bash
+jq --version
+```
+
+⚠️ **Se este comando falhar (`command not found` ou similar), PARE aqui.** Não improvise um caminho alternativo com `node`, `python`, ou script em outra linguagem/processo. Motivo: qualquer arquivo intermediário (`/tmp/actions.json` etc.) é escrito pelo **mesmo shell Bash** que rodou o `curl` — um processo `node`/`python` chamado à parte pode rodar num runtime diferente (ex.: Node nativo do Windows tentando ler um `/tmp` que só existe dentro do WSL, ou vice-versa), e o path simplesmente não existe do outro lado. Isso já quebrou em produção (`ENOENT` tentando ler `\\wsl.localhost\...\tmp\actions.json` que não existia). Se `jq` não estiver disponível, pare e diga ao usuário:
+
+> *"`jq` não está disponível neste shell. Se você acabou de instalar (`winget install jqlang.jq` ou `apt install jq`), pode ser que o processo do Claude Code ainda tenha o PATH antigo — feche o app **completamente** (não só a janela/aba) e abra de novo, não apenas inicie uma sessão nova dentro do mesmo processo. Depois rode `/trello-report` de novo."*
+
 ### 1. Calcular datas
 
 Use Bash para calcular as datas em UTC. Brasília é UTC-3 fixo (sem horário de verão desde 2019). Regra:

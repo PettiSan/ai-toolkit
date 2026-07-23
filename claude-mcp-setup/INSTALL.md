@@ -180,6 +180,47 @@ upstream (host reaping MCP children on session end / resume).
 > Note: the cleanup only catches dead-parent orphans. Ones abandoned on suspend whose parent (the
 > session) is still open only become orphans when the session closes; the next run reaps them.
 
+### Reconnection procedure (measured 2026-07-23 — supersedes the "needs full app restart" assumption)
+
+**Tested live:** killed all 20 accumulated Trello `node.exe` processes (`recover-trello.ps1` logic,
+run manually) while a session had an active Trello MCP tool call in flight. The very next tool call
+(`get_health`) succeeded in <1s against a freshly spawned process (`uptime_ms: 474`) — **no Claude
+Desktop restart was needed.** Claude Code respawns the MCP child process automatically on the next
+tool call once the old one is dead. This means simple process death (the literal "process no longer
+exists") is **not** the failure mode that forces a full app restart — if it were, this test would
+have hung or errored.
+
+**Practical procedure, in order, when a Trello MCP call hangs or errors:**
+
+1. Run `recover-trello.ps1` (kills any `node.exe` whose command line matches `mcp-server-trello`,
+   launcher-spawned or `npx`-spawned alike) and retry the call. Confirmed to recover in <1s, no
+   restart. This is the fix for: stale/orphaned process, a process wedged from a prior suspend, or
+   general "it stopped responding."
+2. If step 1 doesn't fix it and the error is specifically `401`, it's Issue 1 (revoked/expired
+   CredMan token) — process kills don't help; re-store a valid token (see the section above) and
+   **then** restart Desktop (only Issue 1 genuinely requires the restart, because the token is only
+   re-read at launch).
+3. Only fall back to a full Desktop restart if both above fail — in practice this should be rare.
+
+**What we did not manage to test:** a real OS sleep/resume cycle (killing a process is not identical
+to the OS suspending one — a genuinely wedged-but-not-dead process, e.g. a stdio pipe stuck after
+resume, would behave differently from outright death and might not self-heal the way this test
+showed). If the symptom recurs after a real sleep and step 1 does not clear it, that's the signal
+the failure mode is a stuck-not-dead process rather than a dead one — worth a fresh investigation,
+not a rebuild of this procedure.
+
+**Newer package version (1.8.0 vs the 1.7.1 installed here) does not help.** Diffed the upstream
+CHANGELOG: 1.8.0 only adds new tools (list position, list update, watch card/list) and a build/type
+fix — nothing touches transport, process lifecycle, or reconnection. No reason to upgrade for this
+issue specifically.
+
+**Known gap, not fixed here (needs a decision, not just execution):** project-scoped `.mcp.json`
+(e.g. `smartcob-monorepo/.mcp.json`) configures Trello via bare `npx -y @delorenj/mcp-server-trello`,
+not through a `trello.ps1`-style launcher — the exact pattern this doc already flags as fragile
+under headless GUI-spawn (console allocation, PATH resolution). It happened to work in a live test
+(2026-07-23) but that doesn't mean it's equally resilient to the launcher pattern; converting it
+would touch a file shared by the whole team and needs sign-off, not a unilateral edit here.
+
 ## Known limitations
 
 - **Claude Code CLI** has its own auth config separate from Desktop — `~/.claude/settings.json` and `.mcp.json`. This setup is **Desktop-only**.
