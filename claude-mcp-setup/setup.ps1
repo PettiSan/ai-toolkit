@@ -10,8 +10,9 @@
     3. Installs MCP server packages globally via npm
     4. Prompts for tokens and stores them in CredMan (DPAPI)
     5. Copies launchers to ~/.claude/mcp-launchers/
-    6. Merges MCP entries into claude_desktop_config.json
-    7. Applies deny rules to ~/.claude/settings.json (defense in depth)
+    6. Deploys commands/ and agents/ to ~/.claude/ (Desktop reads them from there)
+    7. Merges MCP entries into claude_desktop_config.json
+    8. Applies deny rules to ~/.claude/settings.json (defense in depth)
 
     Run as your normal user. No admin needed.
 
@@ -185,6 +186,41 @@ if ($RestoreSettings) {
     Copy-Item -Path $snapshot -Destination $settingsLive -Force
     Write-OK "restored settings.json from snapshot"
 }
+
+# --- 5e. Deploy commands and agents ---
+# setup.sh symlinks these on Linux/WSL; on Windows there was no install path at all, so
+# commands and agents shipped in this repo never reached the Desktop profile. Copy, not
+# symlink: Windows symlinks need Developer Mode or admin, and every other asset here
+# (launchers, hooks, settings snapshot) is already deployed by copy.
+Write-Step "Deploying commands and agents"
+
+# No Resolve-Path here: over a UNC clone (\\wsl.localhost\...) it returns a
+# provider-qualified path ("Microsoft.PowerShell.Core\FileSystem::\\...") that leaks into
+# messages and breaks when handed to native commands. Step 5c uses the same plain form.
+$repoRoot = Join-Path $PSScriptRoot ".."
+foreach ($kind in @("commands", "agents")) {
+    $srcDir = Join-Path $repoRoot $kind
+    if (-not (Test-Path $srcDir)) {
+        Write-Warn "$kind/ not found at $srcDir -- skipping"
+        continue
+    }
+    $dstDir = "$env:USERPROFILE\.claude\$kind"
+    New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+
+    # File-by-file on purpose -- NEVER mirror-with-delete. ~/.claude/agents legitimately
+    # holds local-only agents that are not versioned here (e.g. teste-eco.md); wiping the
+    # directory to match the repo would destroy them.
+    $files = @(Get-ChildItem -Path $srcDir -Filter "*.md" -File)
+    if ($files.Count -eq 0) {
+        Write-Warn "no .md files in $kind/ -- nothing to deploy"
+        continue
+    }
+    foreach ($f in $files) {
+        Copy-Item -Path $f.FullName -Destination $dstDir -Force
+        Write-OK "deployed $kind/$($f.Name)"
+    }
+}
+Write-Warn "commands and agents are only rescanned on boot -- quit Claude Desktop completely and reopen"
 
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
 Write-Step "Updating Claude Desktop config"
