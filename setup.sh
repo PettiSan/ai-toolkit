@@ -37,6 +37,16 @@ ensure_symlink "$REPO/claude/CLAUDE.md"     "$CLAUDE/CLAUDE.md"     "CLAUDE.md"
 ensure_symlink "$REPO/claude/settings.json" "$CLAUDE/settings.json" "settings.json"
 ensure_symlink "$REPO/agents/advisor.md"    "$CLAUDE/agents/advisor.md" "agents/advisor.md"
 
+# Skills are vendored per-folder (each is a directory: SKILL.md + support files). Symlink
+# each one individually rather than the whole skills/ dir, so ~/.claude/skills can still
+# hold local-only skills that are not versioned here.
+mkdir -p "$CLAUDE/skills"
+for skill in "$REPO"/skills/*/; do
+    [ -d "$skill" ] || continue
+    name=$(basename "$skill")
+    ensure_symlink "$REPO/skills/$name" "$CLAUDE/skills/$name" "skills/$name"
+done
+
 echo ""
 echo "==> Pronto! Claude Code está linkado ao ai-toolkit."
 echo ""
