@@ -28,6 +28,18 @@
     Use on a fresh machine. Off by default so a normal run never clobbers a live
     settings.json that is newer than the snapshot.
 
+.PARAMETER DeployOnly
+    Re-sync mode: copy files only (launchers, hooks, commands, agents, CLAUDE.md) and
+    skip everything else -- prerequisite checks, CredentialManager install, npm packages,
+    the five token prompts, scheduled-task registration, the Desktop config merge and the
+    deny rules. Use this after pulling changes to commands/, agents/ or claude/CLAUDE.md.
+
+    Why it exists: deploying those three is what keeps ~/.claude in sync with this repo,
+    so it has to be cheap enough to actually run. A full run costs five Read-Host prompts
+    and rewrites claude_desktop_config.json, which is enough friction to get skipped --
+    and skipping it is exactly how the Windows profile drifted from the repo in the first
+    place.
+
 .NOTES
     After this script: quit Claude Desktop completely (tray -> Quit) and reopen.
 #>
@@ -35,15 +47,27 @@
 param(
     [switch]$SkipPackages,
     [switch]$SkipDenyRules,
-    [switch]$RestoreSettings
+    [switch]$RestoreSettings,
+    [switch]$DeployOnly
 )
 
 $ErrorActionPreference = "Stop"
+
+# -DeployOnly reuses the existing skip switches where they already exist, and adds guards
+# below for the steps that had none.
+if ($DeployOnly) {
+    $SkipPackages  = $true
+    $SkipDenyRules = $true
+}
 
 function Write-Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 function Write-OK($msg)   { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Warn($msg) { Write-Host "  [!!] $msg" -ForegroundColor Yellow }
 function Write-Err($msg)  { Write-Host "  [ER] $msg" -ForegroundColor Red }
+
+if ($DeployOnly) {
+    Write-Step "Skipping prerequisites, CredentialManager and token prompts (-DeployOnly)"
+} else {
 
 # --- 1. Prerequisites ---
 Write-Step "Checking prerequisites"
@@ -121,6 +145,8 @@ foreach ($t in $tokens) {
     Write-OK "stored $($t.Target)"
 }
 
+}  # end of the -DeployOnly guard opened before step 1
+
 # --- 5. Copy launchers ---
 Write-Step "Copying launchers to user profile"
 
@@ -138,6 +164,9 @@ Get-ChildItem -Path $repoLaunchers -Filter "*.ps1" | ForEach-Object {
 }
 
 # --- 5b. Register orphan-cleanup scheduled task ---
+if ($DeployOnly) {
+    Write-Step "Skipping scheduled-task registration (-DeployOnly)"
+} else {
 Write-Step "Registering MCP orphan-cleanup scheduled task"
 
 $cleanupScript = Join-Path $dest "cleanup-mcp-orphans.ps1"
@@ -151,6 +180,7 @@ if (Test-Path $cleanupScript) {
 } else {
     Write-Warn "cleanup-mcp-orphans.ps1 not found in $dest -- skipping task registration"
 }
+}  # end of the -DeployOnly guard for step 5b
 
 # --- 5c. Deploy Claude Code hooks ---
 Write-Step "Deploying Claude Code hooks"
@@ -242,6 +272,9 @@ if (Test-Path $claudeMdSrc) {
 Write-Warn "commands, agents and CLAUDE.md are only rescanned on boot -- quit Claude Desktop completely and reopen"
 
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
+if ($DeployOnly) {
+    Write-Step "Skipping Claude Desktop config merge (-DeployOnly)"
+} else {
 Write-Step "Updating Claude Desktop config"
 
 $launcherPath = $dest
@@ -282,6 +315,7 @@ if (Test-Path $desktopConfig) {
 $out = $final | ConvertTo-Json -Depth 10
 [System.IO.File]::WriteAllText($desktopConfig, $out, [System.Text.UTF8Encoding]::new($false))
 Write-OK "wrote $desktopConfig"
+}  # end of the -DeployOnly guard for step 6
 
 # --- 7. Deny rules ---
 if ($SkipDenyRules) {
