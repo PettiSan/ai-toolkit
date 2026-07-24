@@ -20,7 +20,9 @@ ai-toolkit/
 │   ├── settings.json              # Settings do CLI no WSL (symlink p/ ~/.claude/settings.json)
 │   ├── settings.windows.json      # Snapshot do settings.json do Claude Desktop (Windows) — backup
 │   └── hooks/                     # Hooks do Claude Code (deploy p/ ~/.claude/hooks/)
-└── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
+├── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
+├── agents/                        # Subagentes (~/.claude/agents/) — ex.: advisor
+└── skills/                        # Skills (~/.claude/skills/) — ex.: handoff (vendorizada, ver abaixo)
 ```
 
 > **Dois settings, dois runtimes.** `claude/settings.json` é o do **CLI no WSL** (symlinkado).
@@ -78,6 +80,22 @@ Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem 
 
 1. Criar `commands/<nome>.md` com o conteúdo da skill
 2. Commitar — o symlink já faz o arquivo aparecer em `~/.claude/commands/` automaticamente
+
+---
+
+## Skills vendorizadas de upstream
+
+Skills em `skills/` que vieram de um repo de terceiro (hoje só `handoff`, do
+[`mattpocock/skills`](https://github.com/mattpocock/skills), MIT) são **cópias congeladas**, não
+consumidas do upstream. Motivo: o upstream é ativo e já refatorou skills de forma incompatível sem
+aviso; e a `handoff` daqui carrega uma adaptação local (a linha de "next-session model", governança
+Opus/Sonnet) que uma sincronização automática atropelaria. O cabeçalho de proveniência dentro do
+`SKILL.md` marca o quê é upstream e o quê é local. Para conferir drift do upstream é leitura manual —
+não rode nenhuma CLI que seja dona da pasta e a sobrescreva.
+
+Os dois instaladores instalam `skills/`: o `setup.sh` symlinka cada pasta de skill (Linux/WSL) e o
+`claude-mcp-setup/setup.ps1` copia cada uma (Windows), ambos preservando skills local-only não
+versionadas aqui.
 
 ---
 

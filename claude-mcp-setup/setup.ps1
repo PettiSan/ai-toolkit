@@ -10,7 +10,7 @@
     3. Installs MCP server packages globally via npm
     4. Prompts for tokens and stores them in CredMan (DPAPI)
     5. Copies launchers to ~/.claude/mcp-launchers/
-    6. Deploys commands/, agents/ and claude/CLAUDE.md to ~/.claude/ (Desktop reads them there)
+    6. Deploys commands/, agents/, skills/ and claude/CLAUDE.md to ~/.claude/ (Desktop reads them there)
     7. Merges MCP entries into claude_desktop_config.json
     8. Applies deny rules to ~/.claude/settings.json (defense in depth)
 
@@ -29,10 +29,10 @@
     settings.json that is newer than the snapshot.
 
 .PARAMETER DeployOnly
-    Re-sync mode: copy files only (launchers, hooks, commands, agents, CLAUDE.md) and
+    Re-sync mode: copy files only (launchers, hooks, commands, agents, skills, CLAUDE.md) and
     skip everything else -- prerequisite checks, CredentialManager install, npm packages,
     the five token prompts, scheduled-task registration, the Desktop config merge and the
-    deny rules. Use this after pulling changes to commands/, agents/ or claude/CLAUDE.md.
+    deny rules. Use this after pulling changes to commands/, agents/, skills/ or claude/CLAUDE.md.
 
     Why it exists: deploying those three is what keeps ~/.claude in sync with this repo,
     so it has to be cheap enough to actually run. A full run costs five Read-Host prompts
@@ -217,12 +217,12 @@ if ($RestoreSettings) {
     Write-OK "restored settings.json from snapshot"
 }
 
-# --- 5e. Deploy commands and agents ---
+# --- 5e. Deploy commands, agents and skills ---
 # setup.sh symlinks these on Linux/WSL; on Windows there was no install path at all, so
-# commands and agents shipped in this repo never reached the Desktop profile. Copy, not
+# commands, agents and skills shipped in this repo never reached the Desktop profile. Copy, not
 # symlink: Windows symlinks need Developer Mode or admin, and every other asset here
 # (launchers, hooks, settings snapshot) is already deployed by copy.
-Write-Step "Deploying commands and agents"
+Write-Step "Deploying commands, agents and skills"
 
 # No Resolve-Path here: over a UNC clone (\\wsl.localhost\...) it returns a
 # provider-qualified path ("Microsoft.PowerShell.Core\FileSystem::\\...") that leaks into
@@ -250,6 +250,31 @@ foreach ($kind in @("commands", "agents")) {
         Write-OK "deployed $kind/$($f.Name)"
     }
 }
+
+# Skills are folders (SKILL.md + support files), not flat .md files, so they get their own
+# per-skill deploy. Same rule as above: NEVER mirror-with-delete -- ~/.claude/skills may hold
+# skills not versioned here. Copy each skill folder's contents into its own destination,
+# leaving other skills untouched. Copying the contents ("\*") with -Recurse into an existing
+# folder avoids the nesting that Copy-Item -Recurse of the folder itself would produce.
+$skillsSrc = Join-Path $repoRoot "skills"
+if (Test-Path $skillsSrc) {
+    $dstSkills = "$env:USERPROFILE\.claude\skills"
+    New-Item -ItemType Directory -Path $dstSkills -Force | Out-Null
+    $skillDirs = @(Get-ChildItem -Path $skillsSrc -Directory)
+    if ($skillDirs.Count -eq 0) {
+        Write-Warn "no skill folders in skills/ -- nothing to deploy"
+    } else {
+        foreach ($sk in $skillDirs) {
+            $dstSkill = Join-Path $dstSkills $sk.Name
+            New-Item -ItemType Directory -Path $dstSkill -Force | Out-Null
+            Copy-Item -Path (Join-Path $sk.FullName "*") -Destination $dstSkill -Recurse -Force
+            Write-OK "deployed skills/$($sk.Name)/"
+        }
+    }
+} else {
+    Write-Warn "skills/ not found at $skillsSrc -- skipping"
+}
+
 # Global CLAUDE.md. setup.sh symlinks this on Linux; without an equivalent here the Windows
 # copy was hand-edited for months and diverged from the repo in both directions. The repo is
 # the source of truth -- but back up first, so a hand-edit that was never pushed is recoverable
@@ -269,7 +294,7 @@ if (Test-Path $claudeMdSrc) {
     Write-Warn "claude/CLAUDE.md not found at $claudeMdSrc -- skipping"
 }
 
-Write-Warn "commands, agents and CLAUDE.md are only rescanned on boot -- quit Claude Desktop completely and reopen"
+Write-Warn "commands, agents, skills and CLAUDE.md are only rescanned on boot -- quit Claude Desktop completely and reopen"
 
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
 if ($DeployOnly) {
