@@ -10,7 +10,7 @@
     3. Installs MCP server packages globally via npm
     4. Prompts for tokens and stores them in CredMan (DPAPI)
     5. Copies launchers to ~/.claude/mcp-launchers/
-    6. Deploys commands/ and agents/ to ~/.claude/ (Desktop reads them from there)
+    6. Deploys commands/, agents/ and claude/CLAUDE.md to ~/.claude/ (Desktop reads them there)
     7. Merges MCP entries into claude_desktop_config.json
     8. Applies deny rules to ~/.claude/settings.json (defense in depth)
 
@@ -220,7 +220,26 @@ foreach ($kind in @("commands", "agents")) {
         Write-OK "deployed $kind/$($f.Name)"
     }
 }
-Write-Warn "commands and agents are only rescanned on boot -- quit Claude Desktop completely and reopen"
+# Global CLAUDE.md. setup.sh symlinks this on Linux; without an equivalent here the Windows
+# copy was hand-edited for months and diverged from the repo in both directions. The repo is
+# the source of truth -- but back up first, so a hand-edit that was never pushed is recoverable
+# instead of silently destroyed (same caution as -RestoreSettings).
+$claudeMdSrc = Join-Path $repoRoot "claude\CLAUDE.md"
+$claudeMdDst = "$env:USERPROFILE\.claude\CLAUDE.md"
+if (Test-Path $claudeMdSrc) {
+    if ((Test-Path $claudeMdDst) -and
+        (Get-FileHash $claudeMdSrc).Hash -ne (Get-FileHash $claudeMdDst).Hash) {
+        $bak = "$claudeMdDst.$(Get-Date -Format 'yyyyMMdd-HHmmss').bak"
+        Copy-Item -Path $claudeMdDst -Destination $bak -Force
+        Write-Warn "existing CLAUDE.md differed from the repo -- backed up to $(Split-Path $bak -Leaf)"
+    }
+    Copy-Item -Path $claudeMdSrc -Destination $claudeMdDst -Force
+    Write-OK "deployed claude/CLAUDE.md"
+} else {
+    Write-Warn "claude/CLAUDE.md not found at $claudeMdSrc -- skipping"
+}
+
+Write-Warn "commands, agents and CLAUDE.md are only rescanned on boot -- quit Claude Desktop completely and reopen"
 
 # --- 6. Merge MCP entries into claude_desktop_config.json ---
 Write-Step "Updating Claude Desktop config"
