@@ -22,8 +22,18 @@ The script will:
 2. Install MCP packages globally via npm
 3. Prompt you for 5 tokens (input hidden) and store them in Windows Credential Manager
 4. Copy launchers to `$env:USERPROFILE\.claude\mcp-launchers\`
-5. Merge MCP entries into `claude_desktop_config.json` (preserving any existing config)
-6. Apply `permissions.deny` rules to `~/.claude/settings.json` (defense in depth)
+5. Deploy `commands/*.md` and `agents/*.md` to `$env:USERPROFILE\.claude\` — this is what makes
+   slash commands like `/trello-report` and agents like `advisor` show up in Claude Desktop.
+   Copies file-by-file and never deletes, so local-only agents in `~/.claude/agents/` survive.
+6. Merge MCP entries into `claude_desktop_config.json` (preserving any existing config)
+7. Apply `permissions.deny` rules to `~/.claude/settings.json` (defense in depth)
+
+> **Windows vs Linux.** `setup.sh` (Linux/WSL) *symlinks* `commands/` and `agents/advisor.md` into
+> `~/.claude/`, so the repo is always the live source there. On Windows this script *copies* —
+> symlinks would need Developer Mode or admin. Consequence: after pulling changes to `commands/` or
+> `agents/`, re-run `setup.ps1` on Windows, or the Desktop keeps the old copy. Claude Desktop only
+> rescans commands and agents **at boot** — quit completely (tray → Quit) and reopen, not just a new
+> conversation.
 
 Then **quit Claude Desktop completely** (tray icon → Quit) and reopen.
 

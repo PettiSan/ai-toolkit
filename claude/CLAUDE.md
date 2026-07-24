@@ -69,6 +69,8 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **GitHub via MCP** quando SSH não estiver disponível: usar sempre `push_files` para múltiplos arquivos. Nunca usar `create_or_update_file` repetidamente.
 
+**Depois de todo `push_files`: `git fetch` + alinhar a branch local com `origin/<branch>`.** O `push_files` escreve direto no remoto pela API — **o clone local nunca aprende que o commit existe**. O resultado é um clone que parece ter trabalho pendente que na verdade já foi pushado, e uma branch local atrás do remoto. Isso já causou perda real: um fix ficou só no working tree, foi dado como perdido, e uma sessão seguinte o "resgatou" e commitou de novo — gerando dois PRs duplicados do mesmo conteúdo. Se sobrar working tree sujo depois do alinhamento, **dizer isso no fim da sessão** (e no handoff, se houver) em vez de deixar quieto. Checklist genérico de fim de sessão não resolve — a causa é mecânica, não de disciplina; é esta regra específica e verificável que fecha o buraco.
+
 **Exploração de arquivos: preferir as tools dedicadas `Glob` (encontrar arquivos por padrão) e `Read` (ler conteúdo) em vez de `cd`/`ls`/`find`/`cat` no Bash.** São read-only, mais rápidas e não disparam prompt de permissão. Só usar Bash para navegação/listagem quando não houver tool equivalente — e, nesse caso, evitar `2>/dev/null` e encadeamento `&&`/`||`, que impedem o auto-allow de comandos read-only.
 
 ---
