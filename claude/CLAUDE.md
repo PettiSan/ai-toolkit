@@ -74,10 +74,30 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 > Só se aplica ao perfil **Windows/Desktop**. Em sessão Linux/WSL CLI, pule esta seção inteira.
 >
-> Nota histórica: as duas primeiras regras nasceram para casar com a allowlist de permissões. Desde
-> 2026-07-23 o bypass de permissões está ligado em definitivo, então esse motivo caducou — mas as
-> regras continuam valendo **pelo motivo funcional**: são as formas que efetivamente funcionam neste
-> ambiente. O gotcha do MSYS nunca teve relação com permissão e é obrigatório.
+> **Modo de permissão: `auto` (automático). Atualizado em 2026-08-17.** De 2026-07-23 a 2026-08-17 o
+> perfil rodou em `bypassPermissions`, ligado para parar os prompts dos comandos `wsl`. Migrado para
+> auto mode e o toggle "Permitir modo de bypass de permissões" foi **desligado** nas configurações do
+> Desktop — enquanto ligado, ele é a saída de menor resistência na primeira fricção, e a migração
+> nunca se completa. Para reverter, é esse toggle (vale só para sessões novas).
+>
+> **Consequência para as duas primeiras regras: o motivo original delas voltou a valer.** Elas
+> nasceram para casar com a allowlist de permissões; sob bypass isso tinha caducado, porque bypass
+> aprova tudo e allow rule vira letra morta. No auto mode, allow rule estreita — como as ~150
+> `Bash(wsl git -C * ...)` do `settings.windows.json` — **resolve antes do classificador**, sem
+> latência e sem chamada de modelo. Escrever o comando na forma que a allowlist reconhece deixou de
+> ser cosmético e voltou a ser o que evita o gate. As regras valem agora pelos dois motivos, o
+> funcional e o de permissão.
+>
+> **O que o auto mode muda na prática:** um segundo modelo (classificador) avalia cada ação antes de
+> executar. Não pergunta — aprova em silêncio ou **nega**. Negação aparece em `/permissions` → aba
+> *Recently denied*, com retry pela tecla `r`. Escrita em protected path (`.git`, `.claude`, `.vscode`,
+> `.idea`, `.husky`, `.mvn`, `.gitconfig`, …) **nunca** é pré-aprovada por allow rule, em modo nenhum —
+> no auto ela vai ao classificador. É onde a fricção aparece, tipicamente em sessão que mexe em
+> `.claude/`. Config do que o classificador considera confiável: bloco `autoMode` em
+> `~/.claude/settings.json` (só perfil de usuário; ele não lê settings de projeto). Inspecionar com
+> `claude auto-mode config`, rodado no shell do **Windows** para auditar o perfil do Desktop.
+>
+> O gotcha do MSYS nunca teve relação com permissão e é obrigatório em qualquer modo.
 
 **Git em repo do WSL a partir do Desktop:** rodar `wsl git -C /home/pettisan/projects/<repo> <comando>`, **um comando por vez**, sem `2>&1`, pipes ou encadeamento (`&&`, `;`). **Nunca** usar `wsl bash -c "cd <path> && git ..."` — é execução arbitrária, e a forma com `-C` é mais legível e mais fácil de auditar no transcript.
 
