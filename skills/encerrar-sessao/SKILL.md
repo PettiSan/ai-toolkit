@@ -1,0 +1,104 @@
+---
+name: encerrar-sessao
+description: Encerra a sessão de trabalho — verifica o estado do repositório, carimba o estado no título da sessão e escreve um resumo final. Use quando o usuário sinalizar fim do trabalho da sessão, tipicamente com o radical "encerr" — "encerre aqui", "encerre essa sessão", "podemos encerrar?", "pode encerrar". Costuma vir grudado no fim de uma instrução maior ("faz X e encerre aqui"): executar o resto primeiro, encerrar por último. NÃO disparar com "encerre o turno", que significa fim do turno de resposta dentro de um workflow, não fim da sessão; nem com fim de tarefa isolada ("termina esse arquivo").
+---
+
+# Encerrar sessão
+
+Fecha uma sessão de trabalho de duas formas, nesta ordem de importância:
+
+1. **Carimba o estado no título da sessão** — para o estado ser legível na lista, sem abrir nada.
+2. **Escreve um resumo** no último output — para quem abrir a sessão semanas depois recuperar o
+   contexto batendo o olho.
+
+O carimbo é o entregável principal. O resumo é o complemento.
+
+## Princípios
+
+**Ancorar em artefato verificável, não na lembrança do transcript.** PR, commit, card, `git log`,
+arquivo. Uma sessão longa já foi compactada e o modelo não viu o começo dela — resumo feito de
+memória mente com confiança. Onde não houver artefato para citar, dizer que não houve.
+
+**Não redeclarar regra que já tem dono.** Esta skill declara *o que verificar* e *o que produzir*.
+As regras em si — de git, de commit, de push — moram no `CLAUDE.md` que a sessão já carregou.
+
+**Não duplicar o que já está em ADR, PR, card ou commit.** Referenciar por link ou path.
+
+## Passo 0 — terminar o que foi pedido antes
+
+O pedido de encerramento quase sempre vem grudado no fim de outra instrução ("faz X e encerre aqui").
+Executar X primeiro. O encerramento é o último passo, nunca o primeiro.
+
+**Se houver ambiguidade sobre se o usuário pediu de fato o encerramento da sessão, perguntar antes de
+agir.** Só em caso de dúvida — quando o pedido for claro, executar direto, sem pedir confirmação.
+
+## Passo 1 — verificar antes de concluir
+
+Não confie na conversa; verifique.
+
+1. **Estado do clone.** Há trabalho não commitado? Não pushado? A branch está atrás do remoto?
+   Resolver a mecânica no ambiente da própria sessão — não assumir shell, host nem formato de path.
+   **Se a sessão não estiver num repositório git, pular este item** e dizer que pulou. Não inventar.
+2. **Alinhamento depois de escrita remota.** Se a sessão escreveu no remoto por API (`push_files` ou
+   equivalente), o clone local não aprende que o commit existe. Verificar o alinhamento.
+3. **O que ficou aberto.** PR não mergeado, card não movido, TODO registrado, teste não rodado,
+   pergunta feita ao usuário e nunca respondida.
+
+## Passo 2 — decidir o estado
+
+| Prefixo | Significado | Quem carimba |
+|---|---|---|
+| `✅` | encerrada, nada pendente | esta skill |
+| `❗` | pendência conhecida, registrada no resumo | esta skill |
+| `❓` | sessão varrida, sem conseguir determinar o estado | skill de varredura (ainda não existe) |
+| *(nada)* | nunca passou por encerramento — estado desconhecido | — |
+
+**O pedido do usuário não decide o estado.** Se o passo 1 achou pendência, o estado é `❗` mesmo que
+ele tenha dito "encerre". Dizer qual é a pendência e por que ela não fecha.
+
+## Passo 3 — carimbar
+
+Renomear a sessão com a tool de renomear sessão, prefixando o título atual:
+`✅ <título atual>` ou `❗ <título atual>`.
+
+- **Prefixo no início** — a lista de sessões trunca pela direita.
+- **Não reescrever o título**, apenas prefixar. Se já houver prefixo de uma execução anterior,
+  substituir o prefixo antigo em vez de empilhar.
+- **Se a tool não existir neste ambiente** — ela é do aplicativo de desktop, e uma sessão de linha de
+  comando pode não tê-la — não falhar: incluir o `✅`/`❗` na linha de estado do resumo e dizer que o
+  carimbo no título não estava disponível neste ambiente.
+
+## Passo 4 — escrever o resumo
+
+Curto. Só o que um leitor precisa para retomar daqui a duas semanas:
+
+1. **Estado** — a primeira linha do output, com o marcador de origem na frente:
+
+   `[encerramento] SESSÃO ENCERRADA`
+   `[encerramento] SESSÃO EM ABERTO — falta <X>`
+
+   O marcador serve para o leitor distinguir um encerramento de verdade de um resumo qualquer
+   escrito no fim de uma sessão, e para a busca em transcript achar sessões que passaram por aqui
+   mesmo que o título tenha perdido o prefixo. **Ele é uma afirmação, então só pode ser emitido se
+   os passos 1 a 3 tiverem rodado de fato.** Se algum passo não pôde rodar, dizer qual na mesma
+   linha em vez de emitir o marcador limpo.
+2. **Pergunta de abertura** — o que abriu a sessão, e a resposta que ela produziu.
+3. **Entregue** — o que foi concluído, com link (PR, commit, card).
+4. **Aberto com desenho pronto** — o que virou card ou issue para depois, com link.
+5. **Estado do clone** — o resultado do passo 1. Se estiver sujo ou desalinhado, dizer, mesmo que
+   seja incômodo depois de uma sessão que pareceu terminada.
+6. **Pendência e próximo passo** — só se o estado for `❗`. Incluir qual modelo a próxima sessão
+   deveria usar e por quê.
+
+Sem recap de processo e sem oferecer ajuda no fim. Este resumo é o último output da sessão.
+
+## Se a sessão ficou em aberto
+
+Oferecer o `handoff`. Os dois não se substituem: o resumo é para o usuário se relembrar, dentro da
+própria sessão; o handoff é o documento para outro agente continuar o trabalho.
+
+## Fora do escopo
+
+**Não arquivar a sessão.** Arquivar encerra o processo e, por padrão, apaga o worktree — havendo
+trabalho não commitado ali, é perda de dado. Só se o usuário pedir explicitamente, e só depois de o
+passo 1 confirmar que está tudo limpo e pushado.

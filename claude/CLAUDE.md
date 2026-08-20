@@ -7,7 +7,7 @@
 
 ## Quem sou eu e onde estou
 
-Desenvolvedor da Smartcob trabalhando em três repositórios simultaneamente. Todos os projetos ficam em `~/projects/` no Ubuntu (WSL2).
+Desenvolvedor da Smartcob trabalhando em quatro repositórios simultaneamente. Todos os projetos ficam em `~/projects/` no Ubuntu (WSL2).
 
 ---
 
@@ -18,6 +18,7 @@ Desenvolvedor da Smartcob trabalhando em três repositórios simultaneamente. To
 | `smartcob-monorepo` | `~/projects/smartcob-monorepo` | `SmartcobSolutions/smartcob-monorepo` | — |
 | `lovabledue-chat` | `~/projects/lovabledue-chat` | `SmartcobSolutions/lovabledue-chat` | `[WEBCHAT-GENERICO]` |
 | `chat-mm-itau` | `~/projects/chat-mm-itau` | `SmartcobSolutions/chat-mm-itau` | `[WEBCHAT-ITAU]` |
+| `custom-simple-sms` | `~/projects/custom-simple-sms` | `jonatasfazenda/custom-simple-sms` (**Bitbucket**) | `[BACKOFFICE]` |
 
 Cada projeto tem seu próprio `CLAUDE.md` com contexto completo. **Sempre leia o CLAUDE.md do projeto antes de qualquer ação.**
 
