@@ -39,6 +39,13 @@ Não confie na conversa; verifique.
 1. **Estado do clone.** Há trabalho não commitado? Não pushado? A branch está atrás do remoto?
    Resolver a mecânica no ambiente da própria sessão — não assumir shell, host nem formato de path.
    **Se a sessão não estiver num repositório git, pular este item** e dizer que pulou. Não inventar.
+   **Se a sessão roda num worktree**, verificar o worktree *e* o clone principal — são estados
+   separados, e o trabalho da sessão costuma estar no worktree.
+   ⚠️ **`fatal: not a git repository` num worktree não significa "não é repositório".** É falha de
+   acesso ao path, comum quando o worktree é alcançado por caminho de rede. Nesse caso, tentar de
+   outra forma (a partir do path interno do próprio worktree, ou `worktree list` a partir do clone
+   principal). Se ainda assim não der, **a verificação é parcial** — nunca tratar como "verificado e
+   limpo", porque é exatamente onde o trabalho da sessão estaria.
 2. **Alinhamento depois de escrita remota.** Se a sessão escreveu no remoto por API (`push_files` ou
    equivalente), o clone local não aprende que o commit existe. Verificar o alinhamento.
 3. **O que ficou aberto.** PR não mergeado, card não movido, TODO registrado, teste não rodado,
@@ -56,14 +63,23 @@ Não confie na conversa; verifique.
 **O pedido do usuário não decide o estado.** Se o passo 1 achou pendência, o estado é `❗` mesmo que
 ele tenha dito "encerre". Dizer qual é a pendência e por que ela não fecha.
 
+**`✅` exige verificação completa.** Ele afirma "nada pendente", e essa afirmação só se sustenta se o
+passo 1 conseguiu olhar tudo o que se propôs a olhar. Se qualquer parte não pôde rodar, `✅` está
+proibido: o estado vira `❗`, e a pendência é a própria verificação que faltou. Não existe `✅` com
+ressalva escondida no corpo do resumo — "achei tudo limpo no que consegui ver" não é `✅`.
+
 ## Passo 3 — carimbar
 
 Renomear a sessão com a tool de renomear sessão, prefixando o título atual:
 `✅ <título atual>` ou `❗ <título atual>`.
 
 - **Prefixo no início** — a lista de sessões trunca pela direita.
-- **Não reescrever o título**, apenas prefixar. Se já houver prefixo de uma execução anterior,
-  substituir o prefixo antigo em vez de empilhar.
+- **Nunca reescrever o título — só prefixar.** O texto que vem depois do prefixo tem que sair
+  idêntico ao que já estava lá, caractere por caractere. Não melhorar, não encurtar, não acrescentar
+  número de card, não corrigir o que parece errado. O usuário reconhece a sessão por esse texto: um
+  título "melhor" é uma sessão que ele não acha mais. Se o título estiver de fato ruim, **sugerir um
+  novo no resumo** e deixar a decisão com ele. A única substituição permitida é trocar o prefixo de
+  uma execução anterior, para não empilhar.
 - **Se a tool não existir neste ambiente** — ela é do aplicativo de desktop, e uma sessão de linha de
   comando pode não tê-la — não falhar: incluir o `✅`/`❗` na linha de estado do resumo e dizer que o
   carimbo no título não estava disponível neste ambiente.
@@ -79,9 +95,16 @@ Curto. Só o que um leitor precisa para retomar daqui a duas semanas:
 
    O marcador serve para o leitor distinguir um encerramento de verdade de um resumo qualquer
    escrito no fim de uma sessão, e para a busca em transcript achar sessões que passaram por aqui
-   mesmo que o título tenha perdido o prefixo. **Ele é uma afirmação, então só pode ser emitido se
-   os passos 1 a 3 tiverem rodado de fato.** Se algum passo não pôde rodar, dizer qual na mesma
-   linha em vez de emitir o marcador limpo.
+   mesmo que o título tenha perdido o prefixo.
+
+   **Ele é uma afirmação, então só pode sair limpo se os passos 1 a 3 rodaram inteiros.** Quando
+   alguma parte não pôde rodar, a ressalva vai **na própria linha de estado**, não enterrada no
+   corpo — a linha de estado é o que o leitor bate o olho, e é ela que precisa ser honesta:
+
+   `[encerramento] SESSÃO EM ABERTO — verificação parcial: <o que não pôde ser verificado>`
+
+   Explicar por que não deu, e o que precisaria para conseguir, fica no item 5. Mas a linha de
+   estado nunca esconde a lacuna.
 2. **Pergunta de abertura** — o que abriu a sessão, e a resposta que ela produziu.
 3. **Entregue** — o que foi concluído, com link (PR, commit, card).
 4. **Aberto com desenho pronto** — o que virou card ou issue para depois, com link.
