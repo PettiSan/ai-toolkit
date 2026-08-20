@@ -1,8 +1,4 @@
 {
-  "theme": "auto",
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(source ~/.zshrc 2>/dev/null; curl -s \"https://api.trello.com/*)",
@@ -15,5 +11,11 @@
       "mcp__trello__trello_search_all_boards",
       "mcp__trello__trello_get_card_attachments"
     ]
-  }
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "theme": "auto",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
 }
