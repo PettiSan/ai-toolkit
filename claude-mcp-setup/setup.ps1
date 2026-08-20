@@ -254,7 +254,7 @@ foreach ($kind in @("commands", "agents")) {
 # Skills are folders (SKILL.md + support files), not flat .md files, so they get their own
 # per-skill deploy. Same rule as above: NEVER mirror-with-delete -- ~/.claude/skills may hold
 # skills not versioned here. Copy each skill folder's contents into its own destination,
-# leaving other skills untouched. Copying the contents ("\*") with -Recurse into an existing
+# leaving other skills untouched. Copying the contents ("*") with -Recurse into an existing
 # folder avoids the nesting that Copy-Item -Recurse of the folder itself would produce.
 $skillsSrc = Join-Path $repoRoot "skills"
 if (Test-Path $skillsSrc) {
