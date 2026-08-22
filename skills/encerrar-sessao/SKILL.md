@@ -126,13 +126,17 @@ própria sessão; o handoff é o documento para outro agente continuar o trabalh
 trabalho não commitado ali, é perda de dado. Só se o usuário pedir explicitamente, e só depois de o
 passo 1 confirmar que está tudo limpo e pushado.
 
-**Nunca apagar, podar ou desregistrar worktree — e nunca sugerir que se faça isso.** A verificação do
-passo 1 é **somente leitura**. Worktree órfão, marcado `prunable`, ou com registro apontando para
-caminho inacessível: tudo isso se **relata como fato**, nunca como pendência a resolver. "Pode ser
-removido quando quiser" numa lista de pendências não é observação, é ordem de serviço — e o resumo é
-exatamente o documento que o usuário lê para decidir o que fazer em seguida.
+**Não apagar, podar nem desregistrar worktree por iniciativa própria — e não sugerir que se faça
+isso.** A verificação do passo 1 é **somente leitura**. Worktree órfão, marcado `prunable`, ou com
+registro apontando para caminho inacessível: tudo isso se **relata como fato**, nunca como pendência
+a resolver. "Pode ser removido quando quiser" numa lista de pendências não é observação, é ordem de
+serviço — e o resumo é exatamente o documento que o usuário lê para decidir o que fazer em seguida.
 
 O motivo não é risco de perder código: é que **o worktree é o diretório de trabalho da própria
 sessão**. Removê-lo deixa a sessão sem casa e **inacessível**, mesmo com tudo commitado, pushado e
 mergeado. Confirmar "não há trabalho perdido" **não** cobre esse dano — então nenhuma verificação,
-por mais completa, autoriza a remoção nem a recomendação dela.
+por mais completa, torna a remoção uma boa ideia para *sugerir*.
+
+**Isto não restringe o usuário.** Se ele pedir explicitamente para remover o worktree ou arquivar a
+sessão, execute normalmente, sem fricção e sem sermão. A proibição é sobre a skill agir ou
+recomendar por conta própria — a decisão é dele, e ele não precisa da opinião dela para tomá-la.
