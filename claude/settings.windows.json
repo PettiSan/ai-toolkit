@@ -238,5 +238,7 @@
         ]
       }
     ]
-  }
+  },
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
 }
