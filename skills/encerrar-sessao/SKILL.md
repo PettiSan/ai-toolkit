@@ -13,6 +13,10 @@ Fecha uma sessão de trabalho de duas formas, nesta ordem de importância:
 
 O carimbo é o entregável principal. O resumo é o complemento.
 
+**"Encerrar" aqui significa carimbar e resumir — não matar o processo nem arquivar.** A sessão segue
+viva até o usuário fechá-la na interface. Isso é deliberado (ver *Fora do escopo*), mas não é óbvio
+para quem olha a lista e vê a sessão ainda ativa: por isso o Passo 4 diz isso em uma linha.
+
 ## Princípios
 
 **Ancorar em artefato verificável, não na lembrança do transcript.** PR, commit, card, `git log`,
@@ -70,8 +74,17 @@ ressalva escondida no corpo do resumo — "achei tudo limpo no que consegui ver"
 
 ## Passo 3 — carimbar
 
-Renomear a sessão com a tool de renomear sessão, prefixando o título atual:
-`✅ <título atual>` ou `❗ <título atual>`.
+Dois movimentos, nesta ordem:
+
+1. **Ler o título atual** — com a tool que devolve os metadados da *própria* sessão (`get_session`
+   com `session_id: "self"`, no ambiente de desktop). **Nunca usar a tool de listar sessões para
+   isso: ela exclui a sessão corrente.** Foi assim que execuções passadas carimbaram o slug do
+   worktree achando que era o título (`✅ portal-itau-contract-guarantees-3582f4-71`) e depois
+   "consertaram" reescrevendo — dois títulos inventados, nenhum deles o do usuário.
+2. **Renomear** prefixando o texto lido: `✅ <título atual>` ou `❗ <título atual>`.
+
+**Não carimbar sem ter lido.** Se a leitura falhar, cair no fallback de agente remoto abaixo —
+chutar o título é pior do que não carimbar.
 
 - **Prefixo no início** — a lista de sessões trunca pela direita.
 - **Nunca reescrever o título — só prefixar.** O texto que vem depois do prefixo tem que sair
@@ -80,9 +93,16 @@ Renomear a sessão com a tool de renomear sessão, prefixando o título atual:
   título "melhor" é uma sessão que ele não acha mais. Se o título estiver de fato ruim, **sugerir um
   novo no resumo** e deixar a decisão com ele. A única substituição permitida é trocar o prefixo de
   uma execução anterior, para não empilhar.
-- **Se a tool não existir neste ambiente** — ela é do aplicativo de desktop, e uma sessão de linha de
-  comando pode não tê-la — não falhar: incluir o `✅`/`❗` na linha de estado do resumo e dizer que o
-  carimbo no título não estava disponível neste ambiente.
+- **Se as tools de sessão não existirem — sessão com agente remoto.** O sinal é o `cwd`: quando ele
+  é um path nativo do host remoto (`/home/<user>/...`) em vez do path pelo qual o app alcança aquele
+  host, o processo do agente nasceu **dentro** da máquina remota, e as tools que o aplicativo injeta
+  não atravessam essa fronteira. Não falhar: incluir o `✅`/`❗` na linha de estado do resumo e dizer
+  que o carimbo no título não existe em sessão com agente remoto.
+
+  ⚠️ **Não inventar explicação para a ausência.** Especificamente: não chamar isso de "sessão de
+  linha de comando" nem de "outro aplicativo" — pode ser o mesmo app e a mesma conta; o que muda é
+  onde o processo do agente roda. Errar o diagnóstico do próprio ambiente é pior que a falha em si,
+  porque manda o usuário procurar o problema no lugar errado.
 
 ## Passo 4 — escrever o resumo
 
@@ -112,6 +132,10 @@ Curto. Só o que um leitor precisa para retomar daqui a duas semanas:
    seja incômodo depois de uma sessão que pareceu terminada.
 6. **Pendência e próximo passo** — só se o estado for `❗`. Incluir qual modelo a próxima sessão
    deveria usar e por quê.
+7. **Como fechar de fato** — uma linha, sempre, mesmo em `✅`: o encerramento carimbou e resumiu, e
+   o **processo da sessão segue vivo** até o usuário fechá-la na interface. Arquivar é decisão dele
+   e não é feita por esta skill. Sem essa linha, uma sessão "encerrada" que continua ativa na lista
+   parece falha da skill.
 
 Sem recap de processo e sem oferecer ajuda no fim. Este resumo é o último output da sessão.
 
