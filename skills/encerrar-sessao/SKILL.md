@@ -14,8 +14,8 @@ Fecha uma sessão de trabalho de duas formas, nesta ordem de importância:
 O carimbo é o entregável principal. O resumo é o complemento.
 
 **"Encerrar" aqui significa carimbar e resumir — não matar o processo nem arquivar.** A sessão segue
-viva até o usuário fechá-la na interface. Isso é deliberado (ver *Fora do escopo*), mas não é óbvio
-para quem olha a lista e vê a sessão ainda ativa: por isso o Passo 4 diz isso em uma linha.
+viva até o usuário fechá-la na interface, e isso é deliberado (ver *Fora do escopo*). Quem lê esta
+skill precisa saber disso; o resumo **não** repete a informação a cada encerramento.
 
 ## Princípios
 
@@ -132,12 +132,11 @@ Curto. Só o que um leitor precisa para retomar daqui a duas semanas:
    seja incômodo depois de uma sessão que pareceu terminada.
 6. **Pendência e próximo passo** — só se o estado for `❗`. Incluir qual modelo a próxima sessão
    deveria usar e por quê.
-7. **Como fechar de fato** — uma linha, sempre, mesmo em `✅`: o encerramento carimbou e resumiu, e
-   o **processo da sessão segue vivo** até o usuário fechá-la na interface. Arquivar é decisão dele
-   e não é feita por esta skill. Sem essa linha, uma sessão "encerrada" que continua ativa na lista
-   parece falha da skill.
 
 Sem recap de processo e sem oferecer ajuda no fim. Este resumo é o último output da sessão.
+
+**Não explicar que o processo da sessão continua vivo.** Isso é definição da skill, não notícia — e
+repetido em todo encerramento vira refrão. Só dizer se o usuário perguntar.
 
 ## Se a sessão ficou em aberto
 
