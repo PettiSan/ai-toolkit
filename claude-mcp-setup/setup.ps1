@@ -320,7 +320,7 @@ $ourMcps = [PSCustomObject]@{
 
 if (Test-Path $desktopConfig) {
     Write-OK "merging into existing config"
-    $existing = Get-Content -Raw -Path $desktopConfig | ConvertFrom-Json
+    $existing = Get-Content -Raw -Encoding UTF8 -Path $desktopConfig | ConvertFrom-Json
     if (-not $existing.PSObject.Properties['mcpServers']) {
         $existing | Add-Member -NotePropertyName 'mcpServers' -NotePropertyValue ([PSCustomObject]@{})
     }
@@ -357,7 +357,7 @@ if ($SkipDenyRules) {
     )
 
     if (Test-Path $settingsPath) {
-        $s = Get-Content -Raw -Path $settingsPath | ConvertFrom-Json
+        $s = Get-Content -Raw -Encoding UTF8 -Path $settingsPath | ConvertFrom-Json
     } else {
         New-Item -ItemType Directory -Path (Split-Path $settingsPath) -Force | Out-Null
         $s = [PSCustomObject]@{}
