@@ -15,5 +15,7 @@
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true
   },
-  "theme": "auto"
+  "theme": "auto",
+  "agentPushNotifEnabled": true,
+  "inputNeededNotifEnabled": true
 }

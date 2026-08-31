@@ -58,7 +58,9 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Nunca adicionar Co-Authored-By** nas mensagens de commit.
 
-**GitHub via MCP** quando SSH não estiver disponível: usar sempre `push_files` para múltiplos arquivos. Nunca usar `create_or_update_file` repetidamente.
+**Git por SSH é o caminho padrão** desde 2026-08-28 — `git push origin <branch>`, nos dois perfis, **desde que o ssh-agent do WSL esteja quente** (ver seção Windows + WSL). **Não** pushar por URL HTTPS com token do `gh`: é workaround de autenticação e reabre o popup do Git Credential Manager.
+
+**GitHub via MCP (`push_files`)** é o mecanismo de commit dentro do worktree do Desktop, onde o git local opera sobre ponteiro Windows. Para múltiplos arquivos, sempre `push_files`, nunca `create_or_update_file` repetidamente. **Limite da tool:** não deleta arquivos (a API só escreve blobs) e exige conteúdo integral — commit com deleção ou atômico vai por `git commit` + `git push`.
 
 **Depois de todo `push_files`: `git fetch` + alinhar a branch local com `origin/<branch>`.** O `push_files` escreve direto no remoto pela API — **o clone local nunca aprende que o commit existe**. O resultado é um clone que parece ter trabalho pendente que na verdade já foi pushado, e uma branch local atrás do remoto. Isso já causou perda real: um fix ficou só no working tree, foi dado como perdido, e uma sessão seguinte o "resgatou" e commitou de novo — gerando dois PRs duplicados do mesmo conteúdo. Se sobrar working tree sujo depois do alinhamento, **dizer isso no fim da sessão** (e no handoff, se houver) em vez de deixar quieto. Checklist genérico de fim de sessão não resolve — a causa é mecânica, não de disciplina; é esta regra específica e verificável que fecha o buraco.
 
@@ -104,6 +106,17 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 **Não anexar `; echo $?` (nem outras capturas de exit code) aos comandos.** O exit code já é reportado pela tool Bash — é ruído puro.
 
 > ⚠️ **Gotcha do Git Bash (MSYS):** o shell Bash do Desktop é o Git Bash, que faz *path conversion* — reescreve um argumento unix-style como `/home/pettisan/...` para `C:/Program Files/Git/home/pettisan/...` antes de repassar ao `wsl`, quebrando o `-C`. **Correção (testada):** prefixar o comando com `MSYS_NO_PATHCONV=1`, ex: `MSYS_NO_PATHCONV=1 wsl git -C /home/pettisan/projects/<repo> <comando>`. Definir a variável via `settings.json` (`env`) ou via profile do Git Bash (`.bashrc`/`.bash_profile`) **não** resolve: a tool Bash roda em shell não-interativo e não-login, que não herda nenhum dos dois.
+
+**Autenticação git do lado Windows: `core.sshCommand = wsl ssh`.** O git do Windows não tem chave SSH própria (`~/.ssh` só com `known_hosts`); sem essa config ele cai em HTTPS e abre o **Git Credential Manager**, que trava a sessão num popup de seleção de conta. Configurado e verificado em 2026-08-28 (GitHub e Bitbucket). Se o popup voltar: conferir `git config --global core.sshCommand` e conferir se o `origin` do repo é SSH, não HTTPS.
+
+> ⚠️ **Isso depende do ssh-agent do WSL estar quente.** A `id_rsa` tem passphrase e só entra no agent numa sessão **interativa**; quando o WSL reinicia, o agent novo nasce vazio (`ssh-add -l` → *The agent has no identities*) e **todo push pendura ou falha com `Permission denied (publickey)`** — inclusive vindo do git do Windows, porque ele delega pro mesmo agent. Não é o popup do GCM de volta; é falha de chave. Destravar rodando `ssh-add ~/.ssh/id_rsa` num terminal WSL **interativo** (a tool Bash não serve — a passphrase precisa de stdin de terminal). Um `git pull` interativo também resolve, porque o `~/.ssh/config` tem `AddKeysToAgent yes`. Solução durável, ainda não adotada: `keychain`, ou chave dedicada sem passphrase.
+
+**Mecânica dos worktrees do Desktop** (`.claude/worktrees/<id>`):
+
+- O `.git` do worktree aponta caminho **Windows** (`//wsl.localhost/...`): `wsl git -C <worktree>` devolve `not a git repository`, e é o git do Windows que opera lá dentro. **Não** "consertar" com `git worktree repair` — conserta o WSL e quebra o Desktop (ADR-0004 do monorepo).
+- **Conferir a base antes de editar.** O Desktop deriva o worktree da branch em que o clone principal estava, não da branch de integração do projeto.
+- **O `.env` (gitignored) não acompanha troca de branch.** Sintoma: chamadas viram `/undefined/...` e dão 404. Copiar do worktree de origem e **reiniciar o vite** (lê `.env` só no boot). O `.claude/launch.json` também é por-worktree.
+- **Conferir estado do repo sempre com `wsl git -C <path> status`**, nunca com o git do Windows: ele aplica `core.autocrlf` do perfil Windows e reescreve com CRLF os arquivos que toca, mostrando o repo limpo enquanto o WSL vê dezenas de modificados.
 
 ---
 
