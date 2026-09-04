@@ -58,6 +58,8 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Nunca adicionar Co-Authored-By** nas mensagens de commit.
 
+**Nunca adicionar rodapé de atribuição em corpo de PR** — nada de `🤖 Generated with Claude Code` nem equivalente. O harness do Claude Code injeta isso por default no system prompt (*"End PR bodies with…"*); esta linha existe só para sobrescrever esse default, que é o único motivo de aquilo aparecer. Vale para PR novo e para edição de corpo de PR existente. O `plano-economia-de-tokens` do `smartcob-ai-governance` já citava essa regra como vigente antes de ela existir — passou a existir em 2026-09-04.
+
 **Git por SSH é o caminho padrão** desde 2026-08-28 — `git push origin <branch>`, nos dois perfis, **desde que o ssh-agent do WSL esteja quente** (ver seção Windows + WSL). **Não** pushar por URL HTTPS com token do `gh`: é workaround de autenticação e reabre o popup do Git Credential Manager.
 
 **GitHub via MCP (`push_files`)** é o mecanismo de commit dentro do worktree do Desktop, onde o git local opera sobre ponteiro Windows. Para múltiplos arquivos, sempre `push_files`, nunca `create_or_update_file` repetidamente. **Limite da tool:** não deleta arquivos (a API só escreve blobs) e exige conteúdo integral — commit com deleção ou atômico vai por `git commit` + `git push`.
