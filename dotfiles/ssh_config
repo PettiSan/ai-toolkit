@@ -1,0 +1,15 @@
+Host *
+      IgnoreUnknown UseKeychain
+      UseKeychain yes
+      AddKeysToAgent yes
+
+      # Chave SEM passphrase, gerada em 2026-09-09. Decisao explicita do usuario:
+      # o harness do Claude Desktop precisa autenticar em chamadas nao-interativas,
+      # e sem passphrase o ssh le a chave do disco direto — nao existe ssh-agent no
+      # caminho, logo nao existe agent frio, socket morto nem prompt de senha.
+      # Vale tambem para o git do Windows, que delega via core.sshCommand = wsl ssh.
+      #
+      # Nao ha fallback para a id_rsa de 2017 de proposito: ela foi removida das
+      # contas do GitHub e do Bitbucket em 2026-09-09, e como tem passphrase, ela
+      # so poderia pendurar um comando nao-interativo pedindo senha.
+      IdentityFile ~/.ssh/id_ed25519

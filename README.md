@@ -20,6 +20,8 @@ ai-toolkit/
 │   ├── settings.json              # Settings do CLI no WSL (symlink p/ ~/.claude/settings.json)
 │   ├── settings.windows.json      # Snapshot do settings.json do Claude Desktop (Windows) — backup
 │   └── hooks/                     # Hooks do Claude Code (deploy p/ ~/.claude/hooks/)
+├── dotfiles/                      # Shell e ssh do WSL (symlink p/ ~/.zshenv, ~/.zshrc, ~/.ssh/config)
+│   └── zshenv.local.example       # Template dos segredos — o .local real nunca é versionado
 ├── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
 ├── agents/                        # Subagentes (~/.claude/agents/) — ex.: advisor
 └── skills/                        # Skills (~/.claude/skills/) — ex.: handoff (vendorizada, ver abaixo)
@@ -31,7 +33,14 @@ ai-toolkit/
 > versionada. Re-sincronize à mão quando mudar o settings do Desktop. Restaure num PC novo com
 > `claude-mcp-setup/setup.ps1 -RestoreSettings` (faz backup do existente antes).
 
-> **Credenciais MCP** (tokens de API) nunca ficam neste repo. No Linux/WSL ficam em env vars; no Windows ficam no Windows Credential Manager (DPAPI) via o setup em `claude-mcp-setup/`.
+> **Credenciais MCP** (tokens de API) nunca ficam neste repo. No Windows ficam no Windows
+> Credential Manager (DPAPI) via o setup em `claude-mcp-setup/`. No Linux/WSL ficam em env vars
+> exportadas de `~/.zshenv.local` — **texto plano, modo 600, fora de qualquer repo**.
+>
+> Texto plano no WSL é decisão explícita, não descuido: o harness do Claude Code Desktop já perdeu
+> acesso a esses tokens vindos de cofre mais de uma vez, e o risco de vazamento foi aceito em troca
+> de o MCP subir sempre. O `FIGMA_API_KEY` é a exceção — vem do `pass`, no `~/.zshrc`, e por isso só
+> existe em shell interativo. Não migrar o Trello para o `pass` sem falar com o dono do repo.
 
 ---
 
@@ -43,17 +52,20 @@ ai-toolkit/
 # 1. Clonar
 git clone git@github.com:PettiSan/ai-toolkit.git ~/projects/ai-toolkit
 
-# 2. Rodar o setup (cria os symlinks em ~/.claude/)
+# 2. Rodar o setup (symlinks em ~/.claude/ e os dotfiles de shell/ssh)
 bash ~/projects/ai-toolkit/setup.sh
 
-# 3. Configurar credenciais MCP manualmente
-claude mcp add trello \
-  -e TRELLO_API_KEY=<key> \
-  -e TRELLO_TOKEN=<token> \
-  -- npx @delorenj/mcp-server-trello
+# 3. Criar o arquivo de segredos (não versionado) e preencher
+cp ~/projects/ai-toolkit/dotfiles/zshenv.local.example ~/.zshenv.local
+chmod 600 ~/.zshenv.local
 
 # 4. Instalar o plugin Superpowers via Claude Code marketplace
 ```
+
+> O passo 2 **substitui** `~/.zshenv`, `~/.zshrc` e `~/.ssh/config` por symlinks para `dotfiles/`,
+> guardando o que existia como `.bak` ao lado. Numa máquina que já tem shell configurado, confira o
+> `.bak` antes de descartar. O passo 3 não é opcional: sem `~/.zshenv.local` o shell sobe normal e é
+> o MCP do Trello que falha, na primeira chamada, sem mensagem que aponte a causa.
 
 ### Windows (Claude Desktop)
 

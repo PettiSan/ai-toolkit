@@ -1,0 +1,99 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+
+# Tema desativado — prompt gerenciado pelo oh-my-posh
+ZSH_THEME=""
+
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+# CASE_SENSITIVE="true"
+# HYPHEN_INSENSITIVE="true"
+# zstyle ':omz:update' mode disabled
+# zstyle ':omz:update' mode auto
+# zstyle ':omz:update' mode reminder
+# zstyle ':omz:update' frequency 13
+# DISABLE_MAGIC_FUNCTIONS="true"
+# DISABLE_LS_COLORS="true"
+# DISABLE_AUTO_TITLE="true"
+# ENABLE_CORRECTION="true"
+# COMPLETION_WAITING_DOTS="true"
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
+# HIST_STAMPS="mm/dd/yyyy"
+# ZSH_CUSTOM=/path/to/new-custom-folder
+
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    asdf
+    docker
+    docker-compose
+)
+
+source $ZSH/oh-my-zsh.sh
+
+################# Flipe Petitembere V4.0 to WSL2 #################
+# ssh-agent: removido em 2026-09-09. Não recolocar sem ler isto.
+#
+# Histórico de duas tentativas que falharam, para ninguém tentar a terceira:
+#
+# 1) Bloco artesanal (até 2026-08-31): subia o agent na mão e guardava com
+#    `ps -ef | grep ${SSH_AGENT_PID}` — checava se o PROCESSO estava vivo, não
+#    se ele tinha a CHAVE. Agent que subisse sem um `ssh-add` bem-sucedido
+#    (Ctrl-C no prompt, shell sem TTY) ficava vivo e vazio, a guarda passava, e
+#    o ssh-add não era tentado de novo no resto do boot. Sintoma: todo push
+#    falhando com `Permission denied (publickey)` e nenhum terminal novo
+#    pedindo a passphrase. O "pedia a senha 1x por boot" era efeito desse bug.
+#
+# 2) keychain (2026-08-31 a 2026-09-09): correto no papel — reaproveita agent,
+#    pede a passphrase uma vez, publica o socket em ~/.keychain/<host>-sh.
+#    Quebrou por dois lados. (a) O ~/.zshenv continuou sourceando
+#    ~/.ssh/environment, canal do bloco antigo, que congelou em 31/08 — então
+#    shell não-interativo (as chamadas `wsl git` do Claude Desktop) seguia
+#    lendo socket morto e o harness nunca esquentava. (b) Como o keychain roda
+#    em TODO shell interativo e re-tenta o ssh-add quando a chave não está
+#    carregada, um agent vazio fazia CADA terminal novo pedir a passphrase.
+#
+# Diagnóstico final: agent é a peça errada para o problema. O harness do Claude
+# Desktop precisa autenticar em chamadas não-interativas, e agent é um cache
+# vivo dependente de TTY para ser populado — as duas coisas são incompatíveis.
+#
+# Solução adotada: chave de git sem passphrase (~/.ssh/id_ed25519, Ed25519,
+# gerada em 2026-09-09). O ssh lê do disco direto, não há socket para esfriar
+# nem prompt para responder. Decisão de segurança explícita do usuário: quem lê
+# ~/.ssh/ pode pushar como ele. Ver ai-toolkit/claude/CLAUDE.md.
+
+alias cdp="cd ~/projects/"
+
+# --- ASDF setup ---
+# O export do PATH do asdf foi movido para o ~/.zshenv em 2026-09-09, para que
+# shell nao-interativo (tool Bash do Claude) tambem tenha `yarn` — sem isso o
+# .husky/pre-commit morre com `yarn: command not found`. Nao recolocar aqui:
+# duplica o PATH e reabre o buraco se o .zshenv for limpo. Ver ADR-0039 do
+# smartcob-monorepo.
+source "$HOME/.asdf/asdf.sh"
+################# Flipe Petitembere V4.0 to WSL2 #################
+
+export PATH="$HOME/.local/bin:$PATH"
+eval "$(oh-my-posh init zsh)"
+
+# Trello member ID (não é segredo — usado pelas skills /brainstorming e /trello-report do Claude Code)
+#
+# Onde vivem os segredos — verificado em 2026-09-09. Não há um mecanismo só, e o
+# comentário que existia aqui ("todos vivem em ~/.password-store") era falso:
+#
+#   TRELLO_API_KEY / TRELLO_TOKEN → ~/.zshenv.local, texto plano, modo 600,
+#     sourceado pelo ~/.zshenv (portanto disponível também em shell NÃO-interativo,
+#     que é o que o harness do Claude Code Desktop usa). Decisão explícita do
+#     usuário: cofre já fez o harness perder acesso ao token mais de uma vez, e o
+#     risco de vazamento foi aceito em troca de o MCP do Trello subir sempre.
+#     Não "melhorar" isso movendo para o pass sem falar com ele.
+#   FIGMA_API_KEY → ~/.password-store (pass), na linha abaixo. Como está no .zshrc,
+#     só existe em shell interativo.
+#   GITHUB_PAT → não é exportado por nenhum destes arquivos.
+export TRELLO_MEMBER_ID="64a4994dd6033175ad5e5a07"
+export FIGMA_API_KEY="$(pass show smartcob/figma/api_key 2>/dev/null)"
+
+alias claude-itau="cd ~/projects/smartcob-monorepo && tmux attach-session -d -t agente-itau 2>/dev/null || cd ~/projects/smartcob-monorepo && tmux new-session -s agente-itau 'claude'"
