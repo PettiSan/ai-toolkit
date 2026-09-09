@@ -1,0 +1,20 @@
+# Template do ~/.zshenv.local — copie para $HOME, preencha e deixe em 600:
+#
+#   cp ~/projects/ai-toolkit/dotfiles/zshenv.local.example ~/.zshenv.local
+#   chmod 600 ~/.zshenv.local
+#
+# Este arquivo NAO e versionado (ver .gitignore da raiz). Ele existe porque o
+# ~/.zshenv, que E versionado, sourceia o .local se ele existir. Sem o .local o
+# shell sobe normalmente e quem quebra e o MCP do Trello, na primeira chamada,
+# sem mensagem que aponte a causa.
+#
+# Texto plano aqui e decisao explicita do usuario, nao descuido: cofre ja fez o
+# harness do Claude Code Desktop perder acesso ao token mais de uma vez, e o risco
+# de vazamento foi aceito em troca de o MCP subir sempre. Nao migrar para o pass
+# sem falar com ele.
+#
+# Onde obter: https://trello.com/power-ups/admin — a key aparece na pagina, e o
+# token sai do link "Token" logo abaixo dela.
+
+export TRELLO_API_KEY=""
+export TRELLO_TOKEN=""

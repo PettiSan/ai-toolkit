@@ -1,0 +1,43 @@
+# Segredos: NAO entram neste arquivo. Movidos para ~/.zshenv.local em 2026-09-09.
+#
+# Este arquivo passou a ser versionavel (repo pessoal ai-toolkit); o .local nao e,
+# e mora so nesta maquina, com permissao 600. Se o .local nao existir, as vars de
+# ambiente com segredo simplesmente nao sao definidas — e o que quebra e o MCP que
+# depende delas, nao o shell.
+[ -f "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"
+
+# asdf no PATH — movido do .zshrc para ca em 2026-09-09.
+#
+# O .zshrc roda so em shell INTERATIVO. Com o export do asdf morando la, a shell
+# nao-interativa da tool Bash do Claude nao tinha `yarn` no PATH, e todo
+# `git commit` no monorepo morria no .husky/pre-commit com `yarn: command not
+# found` (exit 127) — desligando na pratica lint-staged, nx affected e o
+# commitlint. Os shims sao standalone: basta o diretorio no PATH, nao precisa do
+# asdf.sh (que segue no .zshrc, para completions e a funcao `asdf`).
+#
+# Isto NAO e pre-requisito da ADR-0039 do smartcob-monorepo. A versao final dela
+# elege git nativo no WORKTREE, com --no-verify, e la o hook roda com o PATH do
+# WINDOWS — este export, que e PATH do WSL, nao alcanca aquele caso. O comentario
+# anterior aqui dizia "clone principal" porque nasceu da primeira versao da ADR,
+# que escolhia a Opcao C; o passe frio derrubou aquela escolha em 2026-09-09.
+#
+# O export continua valendo, mas pelo caso do CLONE PRINCIPAL, que segue
+# disponivel e nao proibido: la o husky roda de verdade, e sem `yarn` no PATH ele
+# morre com exit 127 em vez de reprovar — o gate falha em silencio.
+export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$PATH"
+
+# ssh-agent: NADA A FAZER AQUI — removido em 2026-09-09.
+#
+# Aqui havia uma ponte que sourceava ~/.ssh/environment para expor o
+# SSH_AUTH_SOCK tambem em shell nao-interativo (as chamadas `wsl git` do Claude
+# Desktop). Ela quebrou silenciosamente: em 2026-08-31 o .zshrc trocou o agent
+# artesanal pelo keychain, que publica em ~/.keychain/<host>-sh e NAO escreve em
+# ~/.ssh/environment. O arquivo congelou apontando um socket morto, e toda
+# chamada nao-interativa passou a falhar com `Permission denied (publickey)`
+# mesmo com o agent quente.
+#
+# A correcao nao foi apontar para o arquivo novo: foi remover a dependencia de
+# ssh-agent inteira. A chave de git (~/.ssh/id_ed25519) nao tem passphrase, o
+# ssh a le do disco direto, e nao existe socket para esfriar nem prompt para
+# responder. Se um dia a passphrase voltar, este bloco volta junto — e entao
+# a fonte certa e ~/.keychain/$HOST-sh, nunca ~/.ssh/environment.
