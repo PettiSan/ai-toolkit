@@ -60,7 +60,7 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Nunca adicionar rodapé de atribuição em corpo de PR** — nada de `🤖 Generated with Claude Code` nem equivalente. O harness do Claude Code injeta isso por default no system prompt (*"End PR bodies with…"*); esta linha existe só para sobrescrever esse default, que é o único motivo de aquilo aparecer. Vale para PR novo e para edição de corpo de PR existente. O `plano-economia-de-tokens` do `smartcob-ai-governance` já citava essa regra como vigente antes de ela existir — passou a existir em 2026-09-04.
 
-**Git por SSH é o caminho padrão** desde 2026-08-28 — `git push origin <branch>`, nos dois perfis, **desde que o ssh-agent do WSL esteja quente** (ver seção Windows + WSL). **Não** pushar por URL HTTPS com token do `gh`: é workaround de autenticação e reabre o popup do Git Credential Manager.
+**Git por SSH é o caminho padrão** desde 2026-08-28 — `git push origin <branch>`, nos dois perfis, **sem pré-requisito nenhum** desde 2026-09-09: a chave de git não tem passphrase e não depende de ssh-agent (ver seção Windows + WSL). **Não** pushar por URL HTTPS com token do `gh`: é workaround de autenticação e reabre o popup do Git Credential Manager.
 
 **GitHub via MCP (`push_files`)** é o mecanismo de commit dentro do worktree do Desktop, onde o git local opera sobre ponteiro Windows. Para múltiplos arquivos, sempre `push_files`, nunca `create_or_update_file` repetidamente. **Limite da tool:** não deleta arquivos (a API só escreve blobs) e exige conteúdo integral — commit com deleção ou atômico vai por `git commit` + `git push`.
 
@@ -111,7 +111,43 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 **Autenticação git do lado Windows: `core.sshCommand = wsl ssh`.** O git do Windows não tem chave SSH própria (`~/.ssh` só com `known_hosts`); sem essa config ele cai em HTTPS e abre o **Git Credential Manager**, que trava a sessão num popup de seleção de conta. Configurado e verificado em 2026-08-28 (GitHub e Bitbucket). Se o popup voltar: conferir `git config --global core.sshCommand` e conferir se o `origin` do repo é SSH, não HTTPS.
 
-> ⚠️ **Isso depende do ssh-agent do WSL estar quente.** A `id_rsa` tem passphrase e só entra no agent numa sessão **interativa**; quando o WSL reinicia, o agent novo nasce vazio (`ssh-add -l` → *The agent has no identities*) e **todo push pendura ou falha com `Permission denied (publickey)`** — inclusive vindo do git do Windows, porque ele delega pro mesmo agent. Não é o popup do GCM de volta; é falha de chave. Destravar rodando `ssh-add ~/.ssh/id_rsa` num terminal WSL **interativo** (a tool Bash não serve — a passphrase precisa de stdin de terminal). Um `git pull` interativo também resolve, porque o `~/.ssh/config` tem `AddKeysToAgent yes`. Solução durável, ainda não adotada: `keychain`, ou chave dedicada sem passphrase.
+> ✅ **Não existe mais ssh-agent no caminho — desde 2026-09-09.** A chave de git é a
+> `~/.ssh/id_ed25519` (Ed25519, **sem passphrase**), o `ssh` a lê do disco direto e o `~/.ssh/config`
+> a lista primeiro. Consequência: **nada esfria.** Chamada não-interativa da tool Bash autentica desde
+> o primeiro comando depois do boot, sem prompt, sem socket, sem `ssh-add`. Vale igual para o git do
+> Windows, que delega pelo `core.sshCommand = wsl ssh`. Verificado em 2026-09-09: `ssh -o
+> BatchMode=yes -T` responde `Hi PettiSan!` no GitHub e `authenticated via ssh key.` no Bitbucket, e
+> `git fetch` roda da tool sem nenhum preparo.
+>
+> **Se você vê `Permission denied (publickey)` hoje, NÃO é agent frio — pare de procurar por aí.**
+> Esse diagnóstico caducou. Confira, nesta ordem: o `origin` é SSH e não HTTPS; a
+> `~/.ssh/id_ed25519` existe e está `600`; ela está registrada na conta do host em questão.
+>
+> **Custo aceito, explicitamente, pelo usuário:** chave sem passphrase significa que **quem consegue
+> ler `/home/pettisan/.ssh/` pode pushar como ele** no GitHub e no Bitbucket — incluindo qualquer
+> sessão do Claude nesta máquina. Foi decisão dele, tomada com o trade-off na mesa, porque o harness
+> do Desktop precisa autenticar sem TTY e agent é um cache que só um TTY popula. **Não sugerir
+> "voltar a proteger a chave" como melhoria:** isso reabre exatamente o problema que essa decisão
+> fechou. Se a passphrase voltar algum dia, é decisão dele, e aí o agent e o ritual voltam junto.
+>
+> <details><summary>Histórico: duas tentativas com ssh-agent que falharam (2017–2026-09-09)</summary>
+>
+> Guardado para ninguém tentar a terceira. Detalhe completo nos comentários do `~/.zshrc`.
+>
+> 1. **Bloco artesanal no `.zshrc`** (até 2026-08-31): a guarda checava se o *processo* do agent
+>    estava vivo, não se ele tinha a *chave*. Agent nascido vazio passava na guarda e o `ssh-add`
+>    não era tentado no resto do boot. O "pedia a senha 1x por boot" era efeito colateral desse bug,
+>    não uma feature.
+> 2. **`keychain`** (2026-08-31 a 2026-09-09): correto no papel, quebrou por dois lados. O
+>    `~/.zshenv` continuou sourceando `~/.ssh/environment` — canal do bloco antigo, que o keychain
+>    não escreve — então shell não-interativo lia socket congelado em 31/08 e o harness nunca
+>    esquentava; e como o keychain roda em todo shell interativo e re-tenta o `ssh-add`, um agent
+>    vazio fazia **cada terminal novo** pedir a passphrase.
+>
+> Também removidos em 2026-09-09, porque descreviam esse mecanismo: o hook `ssh-agent-guard.js`
+> (bloqueava `push/fetch/pull/clone/ls-remote` com agent vazio — sem agent, negaria 100% deles), o
+> `~/.ssh/environment` e o diretório `~/.keychain/`.
+> </details>
 
 **Mecânica dos worktrees do Desktop** (`.claude/worktrees/<id>`):
 
