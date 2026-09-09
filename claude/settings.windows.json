@@ -233,13 +233,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"C:/Users/filip/.claude/hooks/ssh-agent-guard.js\"",
-            "if": "Bash(*git *)",
-            "timeout": 15,
-            "statusMessage": "Checando ssh-agent (ssh-agent-guard)…"
-          },
-          {
-            "type": "command",
             "command": "node \"C:/Users/filip/.claude/hooks/git-branch-guard.js\"",
             "if": "Bash(*git *)",
             "timeout": 15,
