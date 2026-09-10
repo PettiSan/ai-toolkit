@@ -34,20 +34,6 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 ---
 
-## Como me responder (postura padrão)
-
-A postura padrão é **camada 1** e chega pelo plugin `smartcob-ai`
-(`SmartcobSolutions/smartcob-ai-governance`), injetada em toda sessão pelo hook `SessionStart`.
-**Não há cópia aqui** — o resumo que morava neste arquivo foi removido na fase 1 do plano, junto
-da cópia do monorepo: ele existia por limitação de replicação, e o plugin remove a limitação
-(**A6**).
-
-Máquina nova, ou postura não chegando: `/plugin marketplace add
-SmartcobSolutions/smartcob-ai-governance` + `/plugin install smartcob-ai@smartcob-ai-governance`
-em **user scope**, e ligar o auto-update (nasce desligado). Nos dois perfis, não em um.
-
----
-
 ## Regras globais de comportamento
 
 **Nunca agir sem contexto.** Se não estiver claro em qual projeto estamos, perguntar antes de executar qualquer ação.
