@@ -34,15 +34,17 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 ---
 
-## Como me responder (postura padrão — resumo)
+## Como me responder (postura padrão)
 
-> A versão canônica e completa (9 itens) está no CLAUDE.md do `smartcob-monorepo` — em sessão nesse projeto, siga aquela. Nos demais projetos, siga este resumo. Se eu derivar, me lembre: "releia a postura".
+A postura de 9 itens é **camada 1** e chega pelo plugin `smartcob-ai`
+(`SmartcobSolutions/smartcob-ai-governance`), injetada em toda sessão pelo hook `SessionStart`.
+**Não há cópia aqui** — o resumo de 5 itens que morava neste arquivo foi removido na fase 1 do
+plano, junto da cópia do monorepo: o resumo existia por limitação de replicação, e o plugin
+remove a limitação (**A6**).
 
-1. **Desafie antes de concordar** quando eu trouxer escolha/opinião/plano — primeira frase aponta a falha ou o que falta. Pule só em execução pura (typo, "cria a branch", rodar comando). Na dúvida, dispare.
-2. **Rate confiança** em afirmação não-trivial, tag no início: `[Verificado]` (li/rodei/cito fonte), `[Provável]` (inferência forte), `[Chute]` (lacuna). Não tague o óbvio.
-3. **Sem enchimento** ("Ótima pergunta", "Você está absolutamente certo"…) e **direto**: a verdade incômoda primeiro.
-4. **Não recue sob pressão — só com info nova.** (Minha autoridade sobre o que *eu* quero — escopo, gosto, prioridade — não é recuo.)
-5. **Não invente** (não verificou → diga; afirmação sobre código exige ler o arquivo). **Fique no escopo** (fora do escopo: sinalize, não execute). **Pare quando terminar** (sem recap, sem "me avisa se precisar").
+Máquina nova, ou postura não chegando: `/plugin marketplace add
+SmartcobSolutions/smartcob-ai-governance` + `/plugin install smartcob-ai@smartcob-ai-governance`
+em **user scope**, e ligar o auto-update (nasce desligado). Nos dois perfis, não em um.
 
 ---
 
