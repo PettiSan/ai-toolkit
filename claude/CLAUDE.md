@@ -34,18 +34,6 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 ---
 
-## Como me responder (postura padrão — resumo)
-
-> A versão canônica e completa (9 itens) está no CLAUDE.md do `smartcob-monorepo` — em sessão nesse projeto, siga aquela. Nos demais projetos, siga este resumo. Se eu derivar, me lembre: "releia a postura".
-
-1. **Desafie antes de concordar** quando eu trouxer escolha/opinião/plano — primeira frase aponta a falha ou o que falta. Pule só em execução pura (typo, "cria a branch", rodar comando). Na dúvida, dispare.
-2. **Rate confiança** em afirmação não-trivial, tag no início: `[Verificado]` (li/rodei/cito fonte), `[Provável]` (inferência forte), `[Chute]` (lacuna). Não tague o óbvio.
-3. **Sem enchimento** ("Ótima pergunta", "Você está absolutamente certo"…) e **direto**: a verdade incômoda primeiro.
-4. **Não recue sob pressão — só com info nova.** (Minha autoridade sobre o que *eu* quero — escopo, gosto, prioridade — não é recuo.)
-5. **Não invente** (não verificou → diga; afirmação sobre código exige ler o arquivo). **Fique no escopo** (fora do escopo: sinalize, não execute). **Pare quando terminar** (sem recap, sem "me avisa se precisar").
-
----
-
 ## Regras globais de comportamento
 
 **Nunca agir sem contexto.** Se não estiver claro em qual projeto estamos, perguntar antes de executar qualquer ação.
@@ -123,7 +111,7 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 **Mecânica dos worktrees do Desktop** (`.claude/worktrees/<id>`):
 
 - O `.git` do worktree aponta caminho **Windows** (`//wsl.localhost/...`): `wsl git -C <worktree>` devolve `not a git repository`, e é o git do Windows que opera lá dentro — é ele, e não uma limitação, que a ADR-0039 elegeu como mecanismo de commit no monorepo. **Não** "consertar" com `git worktree repair` — conserta o WSL e quebra o Desktop (ADR-0004 do monorepo).
-- **Commit no worktree exige `--no-verify`.** O hook do husky roda com o PATH do **Windows**, que não tem `yarn`; sem a flag, todo `git commit` morre com `yarn: command not found` (exit 127). No `smartcob-monorepo` isso não abre mão de gate nenhum — o `nx affected --target=lint` bloqueia todo PR pela CI (ADR-0017). **Não** "consertar" o PATH nem instalar `node_modules` ali para ligar o hook: religa o `prettier` do `lint-staged` em `.md` legado, que a ADR-0019 removeu de propósito. Os artefatos do monorepo enunciam a regra em vocabulário neutro e **não** repetem esta mecânica — ela é camada 3, e mora aqui.
+- **Commit no worktree exige `--no-verify`.** O hook do husky roda com o PATH do **Windows**, que não tem `yarn`; sem a flag, todo `git commit` morre com `yarn: command not found` (exit 127). No `smartcob-monorepo` isso não abre mão de gate nenhum — o `nx affected --target=lint` bloqueia todo PR pela CI (ADR-0017). **Não** "consertar" o PATH nem instalar `node_modules` ali para ligar o hook: religa o `lint-staged`, e o `nx affected --target=lint` da CI já cobre o que importa. ⚠️ **Correção de fato, 2026-09-09:** esta linha dizia que a ADR-0019 tinha removido o `prettier` em `.md` legado. **Não removeu** — a ADR mexeu só no `.github/workflows/deploy-bucket.yaml` (CI) e manteve o husky explicitamente como *"feedback local opcional"*. O `.md` seguia no glob do `lint-staged` e voltou a morder em 2026-09-09; a remoção do glob é de agora, não da ADR. Os artefatos do monorepo enunciam a regra em vocabulário neutro e **não** repetem esta mecânica — ela é camada 3, e mora aqui.
 - **Conferir a base antes de editar.** O Desktop deriva o worktree da branch em que o clone principal estava, não da branch de integração do projeto.
 - **O `.env` (gitignored) não acompanha troca de branch.** Sintoma: chamadas viram `/undefined/...` e dão 404. Copiar do worktree de origem e **reiniciar o vite** (lê `.env` só no boot). O `.claude/launch.json` também é por-worktree.
 - **Conferir estado do repo sempre com `wsl git -C <path> status`**, nunca com o git do Windows: ele aplica `core.autocrlf` do perfil Windows e reescreve com CRLF os arquivos que toca, mostrando o repo limpo enquanto o WSL vê dezenas de modificados.
