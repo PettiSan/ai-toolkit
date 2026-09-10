@@ -43,6 +43,33 @@ Then **quit Claude Desktop completely** (tray icon → Quit) and reopen.
 Flags:
 - `-SkipPackages` — skip the `npm install -g` step (use if you already have them)
 - `-SkipDenyRules` — skip the `settings.json` deny rules update
+- `-DeployOnly` — re-sync mode: copy files only (launchers, hooks, commands, agents, skills, `CLAUDE.md`) and skip the prerequisite checks, the npm install, the five token prompts, the Desktop config merge and the deny rules. Use after pulling changes.
+- `-RestoreSettings` — restore the full Desktop `settings.json` from the versioned snapshot. Fresh machine only; a normal run never touches a live `settings.json`.
+
+### Running it from the WSL clone, over UNC
+
+If the repo lives in WSL and you run the script from Windows by its UNC path, PowerShell refuses it:
+
+```
+... não está assinado digitalmente. Não é possível executar este script no sistema atual.
+```
+
+That is the execution policy, not a broken script. A UNC path is a remote zone, and an unsigned
+script from a remote zone is blocked. It will happen every time, because it is structural: the file
+is in WSL and Windows reaches it over the network namespace.
+
+Run it with the policy bypassed for that one invocation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "\\wsl.localhost\Ubuntu-24.04\home\<user>\projects\ai-toolkit\claude-mcp-setup\setup.ps1" -DeployOnly
+```
+
+That spawns a child process with the policy relaxed for that run only. Nothing persists. To stay in
+the current window instead, `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` has the
+same lifetime, dying with the window.
+
+Do **not** fix it with `Set-ExecutionPolicy -Scope CurrentUser`, which is the first answer any search
+returns. It lowers the policy for the whole account permanently, to run one script every few weeks.
 
 ## Tokens to have ready before running
 

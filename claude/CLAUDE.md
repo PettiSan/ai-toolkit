@@ -104,6 +104,17 @@ Nunca misture contexto entre projetos. Se a sessão mudar de projeto, releia o C
 
 > ⚠️ **Gotcha do Git Bash (MSYS):** o shell Bash do Desktop é o Git Bash, que faz *path conversion* — reescreve um argumento unix-style como `/home/pettisan/...` para `C:/Program Files/Git/home/pettisan/...` antes de repassar ao `wsl`, quebrando o `-C`. **Correção (testada):** prefixar o comando com `MSYS_NO_PATHCONV=1`, ex: `MSYS_NO_PATHCONV=1 wsl git -C /home/pettisan/projects/<repo> <comando>`. Definir a variável via `settings.json` (`env`) ou via profile do Git Bash (`.bashrc`/`.bash_profile`) **não** resolve: a tool Bash roda em shell não-interativo e não-login, que não herda nenhum dos dois.
 
+**Rodar o `setup.ps1` a partir do PowerShell esbarra na execution policy, sempre.** O script mora no
+WSL e o Windows o alcança por caminho UNC; UNC é zona remota, e script não assinado vindo de zona
+remota é bloqueado com `PSSecurityException`. Não é falha da execução, é estrutural, e repete toda
+vez. A forma que passa, sem alterar nada permanente:
+`powershell -ExecutionPolicy Bypass -File "\\wsl.localhost\Ubuntu-24.04\home\pettisan\projects\ai-toolkit\claude-mcp-setup\setup.ps1" -DeployOnly`.
+O `-DeployOnly` copia só os arquivos e pula os prompts de token, os pacotes npm e a mexida no
+`claude_desktop_config.json`, que é o que torna a ressincronização barata o bastante para acontecer.
+**Não** resolver com `Set-ExecutionPolicy -Scope CurrentUser`: baixa a política da conta inteira,
+para sempre, por causa de um script rodado a cada poucas semanas. Detalhe e alternativas no
+`claude-mcp-setup/INSTALL.md`.
+
 **Autenticação git do lado Windows: `core.sshCommand = wsl ssh`.** O git do Windows não tem chave SSH própria (`~/.ssh` só com `known_hosts`); sem essa config ele cai em HTTPS e abre o **Git Credential Manager**, que trava a sessão num popup de seleção de conta. Configurado e verificado em 2026-08-28 (GitHub e Bitbucket). Se o popup voltar: conferir `git config --global core.sshCommand` e conferir se o `origin` do repo é SSH, não HTTPS.
 
 > ✅ **Git não usa ssh-agent.** A chave é a `~/.ssh/id_ed25519`, **sem passphrase**, lida do disco direto — chamada não-interativa autentica sem nenhum preparo. **`Permission denied (publickey)` não é agent frio:** conferir, nesta ordem, se o `origin` é SSH e não HTTPS, se a chave existe com `600`, e se está registrada na conta daquele host. Chave sem passphrase é decisão do usuário, tomada com o trade-off na mesa (quem lê `~/.ssh/` pode pushar como ele) — **não sugerir "voltar a proteger a chave" como melhoria.** Por que duas tentativas com agent falharam: PR #30 e os comentários do `~/.zshrc`.
