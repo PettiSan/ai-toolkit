@@ -252,9 +252,7 @@
       "Edit(**/.claude/CLAUDE.md)",
       "Edit(**/.claude/commands/**)",
       "Edit(**/.claude/agents/**)",
-      "Edit(C:\\Users\\filip\\OneDrive\\Documentos\\Docs\\ClaudeDocs\\**)",
-      "Read(C:\\Users\\filip\\AppData\\Local\\Temp\\handoff-*.md)",
-      "Edit(C:\\Users\\filip\\AppData\\Local\\Temp\\handoff-*.md)"
+      "Edit(C:\\Users\\filip\\OneDrive\\Documentos\\Docs\\ClaudeDocs\\**)"
     ],
     "additionalDirectories": [
       "//wsl.localhost/ubuntu-24.04/home/pettisan/projects/smartcob-monorepo",
