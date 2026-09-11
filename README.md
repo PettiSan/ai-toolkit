@@ -23,8 +23,7 @@ ai-toolkit/
 ├── dotfiles/                      # Shell e ssh do WSL (symlink p/ ~/.zshenv, ~/.zshrc, ~/.ssh/config)
 │   └── zshenv.local.example       # Template dos segredos — o .local real nunca é versionado
 ├── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
-├── agents/                        # Subagentes (~/.claude/agents/) — ex.: advisor
-└── skills/                        # Skills (~/.claude/skills/) — ex.: handoff (vendorizada, ver abaixo)
+└── agents/                        # Subagentes (~/.claude/agents/) — ex.: advisor
 ```
 
 > **Dois settings, dois runtimes.** `claude/settings.json` é o do **CLI no WSL** (symlinkado).
@@ -95,19 +94,23 @@ Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem 
 
 ---
 
-## Skills vendorizadas de upstream
+## Skills
 
-Skills em `skills/` que vieram de um repo de terceiro (hoje só `handoff`, do
-[`mattpocock/skills`](https://github.com/mattpocock/skills), MIT) são **cópias congeladas**, não
-consumidas do upstream. Motivo: o upstream é ativo e já refatorou skills de forma incompatível sem
-aviso; e a `handoff` daqui carrega uma adaptação local (a linha de "next-session model", governança
-Opus/Sonnet) que uma sincronização automática atropelaria. O cabeçalho de proveniência dentro do
-`SKILL.md` marca o quê é upstream e o quê é local. Para conferir drift do upstream é leitura manual —
-não rode nenhuma CLI que seja dona da pasta e a sobrescreva.
+Este repositório não versiona mais skill nenhuma. As duas que moravam aqui, `handoff` e
+`encerrar-sessao`, foram para o plugin `smartcob-ai`, no
+[`SmartcobSolutions/smartcob-ai-governance`](https://github.com/SmartcobSolutions/smartcob-ai-governance),
+na fase 2 do plano de governança. São regra de processo transversal, que vale para qualquer pessoa em
+qualquer repositório, e por isso são camada 1.
 
-Os dois instaladores instalam `skills/`: o `setup.sh` symlinka cada pasta de skill (Linux/WSL) e o
-`claude-mcp-setup/setup.ps1` copia cada uma (Windows), ambos preservando skills local-only não
-versionadas aqui.
+A `handoff` deixou de ser cópia congelada do [`mattpocock/skills`](https://github.com/mattpocock/skills)
+e virou skill própria, reescrita. Quem quiser as duas instala o plugin, e o
+[README de lá](https://github.com/SmartcobSolutions/smartcob-ai-governance#instalação) tem o passo a
+passo.
+
+O wiring de `skills/` continua nos dois instaladores, e os dois já tratam a ausência do diretório sem
+erro. Ele fica de pé para o caso de uma skill puramente pessoal aparecer aqui algum dia: o `setup.sh`
+symlinka cada pasta, o `claude-mcp-setup/setup.ps1` copia cada uma, e nenhum dos dois apaga o que não
+conhece.
 
 ---
 
