@@ -94,26 +94,17 @@ Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem 
 
 ---
 
-## Skills
+## Skills e commands
 
-Este repositório não versiona mais skill nenhuma. As duas que moravam aqui, `handoff` e
-`encerrar-sessao`, foram para o plugin `smartcob-ai`, no
-[`SmartcobSolutions/smartcob-ai-governance`](https://github.com/SmartcobSolutions/smartcob-ai-governance),
-na fase 2 do plano de governança. São regra de processo transversal, que vale para qualquer pessoa em
-qualquer repositório, e por isso são camada 1.
+Este repositório não versiona mais nenhum dos dois. O que morava aqui era regra de processo
+transversal, que vale para qualquer pessoa em qualquer repositório, e por isso saiu para o plugin de
+governança do trabalho, que é de outro dono.
 
-A `handoff` deixou de ser cópia congelada do [`mattpocock/skills`](https://github.com/mattpocock/skills)
-e virou skill própria, reescrita. Quem quiser as duas instala o plugin, e o
-[README de lá](https://github.com/SmartcobSolutions/smartcob-ai-governance#instalação) tem o passo a
-passo.
+O wiring dos dois continua nos instaladores, e eles já tratam a ausência sem erro: o `setup.sh`
+symlinka cada pasta de skill e o diretório de commands inteiro, e o `claude-mcp-setup/setup.ps1` copia
+cada um. Nenhum apaga o que não conhece. Fica de pé para o caso de uma skill ou um command puramente
+**pessoal** aparecerem aqui algum dia, que é o único tipo que pertence a este repositório.
 
-O wiring de `skills/` continua nos dois instaladores, e os dois já tratam a ausência do diretório sem
-erro. Ele fica de pé para o caso de uma skill puramente pessoal aparecer aqui algum dia: o `setup.sh`
-symlinka cada pasta, o `claude-mcp-setup/setup.ps1` copia cada uma, e nenhum dos dois apaga o que não
-conhece.
-
----
-
-## Relação com o smartcob-monorepo
-
-A versão canônica do `/trello-report` vive aqui em `commands/trello-report.md` — é um comando global (roda de qualquer projeto), então a tabela de prefixos de card fica embutida no próprio arquivo em vez de referenciar `smartcob-monorepo/docs/governanca/trello-refs.md` por path relativo. Se um prefixo mudar lá, atualize a tabela embutida aqui manualmente (duplicação assumida deliberadamente).
+⚠️ `commands/` tem um `.gitkeep` de propósito. O `setup.sh` symlinka aquele diretório inteiro, ao
+contrário de `skills/`, que ele symlinka pasta por pasta. Sem o arquivo o git apaga a pasta e o
+symlink do perfil fica pendurado.

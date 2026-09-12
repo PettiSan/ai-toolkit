@@ -1,0 +1,5 @@
+Mantém o diretório existindo depois que o último command subiu para o plugin
+smartcob-ai. Sem ele o git apaga a pasta, e o `~/.claude/commands` do perfil, que
+o setup.sh symlinka como diretório inteiro, vira symlink pendurado.
+
+O wiring fica de pé para o caso de um command puramente pessoal aparecer aqui.

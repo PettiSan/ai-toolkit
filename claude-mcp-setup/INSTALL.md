@@ -23,7 +23,7 @@ The script will:
 3. Prompt you for 5 tokens (input hidden) and store them in Windows Credential Manager
 4. Copy launchers to `$env:USERPROFILE\.claude\mcp-launchers\`
 5. Deploy `commands/*.md`, `agents/*.md` and `claude/CLAUDE.md` to `$env:USERPROFILE\.claude\` —
-   this is what makes slash commands like `/trello-report` and agents like `advisor` show up in
+   this is what makes agents like `advisor` show up in
    Claude Desktop. Copies file-by-file and never deletes, so local-only agents in
    `~/.claude/agents/` survive. If the live `CLAUDE.md` differs from the repo it is backed up to
    `CLAUDE.md.<timestamp>.bak` before being overwritten — **the repo is the source of truth, so
