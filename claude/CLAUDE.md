@@ -148,6 +148,3 @@ para sempre, por causa de um script rodado a cada poucas semanas. Detalhe e alte
 
 Ao receber "pega próximo card", identificar o projeto ativo pelo prefixo e executar o workflow definido no CLAUDE.md do projeto correspondente.
 
-**Formato de referência a card do Trello.** Sempre `Card: [**<shortLink>**](https://trello.com/c/<shortLink>)` — ex.: `Card: [**nt321mc7**](https://trello.com/c/nt321mc7)`. O shortLink fica **em negrito dentro do link** (markdown aceita `**` dentro do texto do link); o Desktop renderiza como "Card: **nt321mc7** (→ trello.com)". Nunca `#<número>` nem URL crua. Exceção: saídas para WhatsApp (`/smartcob-ai:trello-report`) mantêm URL crua em linha própria — WhatsApp não renderiza markdown.
-
-**Defaults de criação de card.** Ao criar card no Trello (via `/smartcob-ai:criar-card` ou pedido informal), assumir por padrão: lista **Backlog**, atribuído a **mim**, contexto rico da sessão. Override só quando dito explicitamente ("na lista X", "atribui pra Y").
