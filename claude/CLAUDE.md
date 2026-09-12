@@ -139,12 +139,7 @@ para sempre, por causa de um script rodado a cada poucas semanas. Detalhe e alte
 
 ---
 
-## Trello — Board principal
-
-> **Board, listas e prefixos não moram mais aqui nem em consumidor nenhum.** São camada 1 e vivem no
-> plugin `smartcob-ai`, em `governance/trello-refs.md`. O `/pegar-card` do monorepo e o
-> `/smartcob-ai:trello-report` leem de lá. Duplicar a tabela aqui era contexto pago em toda sessão,
-> inclusive nas dos webchats, que não usam o board dessa forma.
+## Trello
 
 Ao receber "pega próximo card", identificar o projeto ativo pelo prefixo e executar o workflow definido no CLAUDE.md do projeto correspondente.
 
