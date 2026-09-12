@@ -116,4 +116,11 @@ conhece.
 
 ## Relação com o smartcob-monorepo
 
-A versão canônica do `/trello-report` vive aqui em `commands/trello-report.md` — é um comando global (roda de qualquer projeto), então a tabela de prefixos de card fica embutida no próprio arquivo em vez de referenciar `smartcob-monorepo/docs/governanca/trello-refs.md` por path relativo. Se um prefixo mudar lá, atualize a tabela embutida aqui manualmente (duplicação assumida deliberadamente).
+Nada aqui referencia aquele repositório, e nada lá referencia este. O que os dois compartilhavam
+(board do Trello, IDs de lista, tabela de prefixos) subiu para o plugin `smartcob-ai`, em
+[`governance/trello-refs.md`](https://github.com/SmartcobSolutions/smartcob-ai-governance/blob/main/governance/trello-refs.md),
+e os dois consomem de lá.
+
+Antes disso a tabela de prefixos vivia embutida em cada consumidor, com uma nota assumindo a
+duplicação. Ela **divergiu**: quando o plugin foi montado, a cópia daqui estava quatro prefixos atrás
+da do monorepo.

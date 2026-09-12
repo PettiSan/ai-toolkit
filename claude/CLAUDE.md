@@ -141,14 +141,13 @@ para sempre, por causa de um script rodado a cada poucas semanas. Detalhe e alte
 
 ## Trello — Board principal
 
-**Board ID:** `65452685593555d57aa6aaf7`
-
-> IDs de lista **não moram aqui**. Cada consumidor carrega os seus: o `/pegar-card` (monorepo) e o
-> `/trello-report` (este repo) embutem as listas que usam. Duplicar a tabela aqui era contexto pago
-> em toda sessão — inclusive nas dos webchats, que não usam o board dessa forma.
+> **Board, listas e prefixos não moram mais aqui nem em consumidor nenhum.** São camada 1 e vivem no
+> plugin `smartcob-ai`, em `governance/trello-refs.md`. O `/pegar-card` do monorepo e o
+> `/smartcob-ai:trello-report` leem de lá. Duplicar a tabela aqui era contexto pago em toda sessão,
+> inclusive nas dos webchats, que não usam o board dessa forma.
 
 Ao receber "pega próximo card", identificar o projeto ativo pelo prefixo e executar o workflow definido no CLAUDE.md do projeto correspondente.
 
-**Formato de referência a card do Trello.** Sempre `Card: [**<shortLink>**](https://trello.com/c/<shortLink>)` — ex.: `Card: [**nt321mc7**](https://trello.com/c/nt321mc7)`. O shortLink fica **em negrito dentro do link** (markdown aceita `**` dentro do texto do link); o Desktop renderiza como "Card: **nt321mc7** (→ trello.com)". Nunca `#<número>` nem URL crua. Exceção: saídas para WhatsApp (`/trello-report`) mantêm URL crua em linha própria — WhatsApp não renderiza markdown.
+**Formato de referência a card do Trello.** Sempre `Card: [**<shortLink>**](https://trello.com/c/<shortLink>)` — ex.: `Card: [**nt321mc7**](https://trello.com/c/nt321mc7)`. O shortLink fica **em negrito dentro do link** (markdown aceita `**` dentro do texto do link); o Desktop renderiza como "Card: **nt321mc7** (→ trello.com)". Nunca `#<número>` nem URL crua. Exceção: saídas para WhatsApp (`/smartcob-ai:trello-report`) mantêm URL crua em linha própria — WhatsApp não renderiza markdown.
 
-**Defaults de criação de card.** Ao criar card no Trello (via `/criar-card` ou pedido informal), assumir por padrão: lista **Backlog**, atribuído a **mim**, contexto rico da sessão. Override só quando dito explicitamente ("na lista X", "atribui pra Y").
+**Defaults de criação de card.** Ao criar card no Trello (via `/smartcob-ai:criar-card` ou pedido informal), assumir por padrão: lista **Backlog**, atribuído a **mim**, contexto rico da sessão. Override só quando dito explicitamente ("na lista X", "atribui pra Y").
