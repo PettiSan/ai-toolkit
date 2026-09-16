@@ -1,110 +1,122 @@
 # ai-toolkit
 
-Personal AI toolkit — custom slash commands and configurations for AI coding assistants.
+Configuration-as-code for AI coding agents, across Linux, WSL and Windows.
 
-Este repo é a fonte de verdade para toda a configuração do Claude Code. Tudo que está em `~/.claude/` é symlink para cá — editar em qualquer lugar sincroniza automaticamente.
+This repository is the single source of truth for my Claude Code setup: global agent instructions,
+lifecycle hooks, subagents, shell dotfiles, and the MCP server wiring for both the CLI and the desktop
+app. Everything under `~/.claude/` is a symlink back here, so editing in either place stays in sync and
+two machines cannot quietly drift apart.
 
 ---
 
-## Estrutura
+## Why this exists
+
+I run Claude Code on one machine across two operating systems: the desktop app on Windows, and the CLI
+inside Ubuntu on WSL. Most of my delivery goes through AI agents. That setup has two failure modes, and
+both of them are silent.
+
+**The first is drift.** Configuration that lives in a home directory is invisible to version control.
+You change something on one machine, forget the other, and then spend a week wondering why the same
+prompt produces different behavior in two places. The fix is boring and it works: put the configuration
+in a repository and point the home directory at it.
+
+**The second is credentials.** MCP servers need API tokens, and the obvious place to put them is a
+config file. That config file then gets synced, backed up, or screenshotted. So no token lives in this
+repository at any point. On Windows they go into the Windows Credential Manager through DPAPI, read from
+hidden input and never written to disk in plaintext. Rotation is one command.
+
+There is one deliberate exception, and it is documented rather than hidden: on WSL the tokens live in a
+`600`-mode file outside any repository. That is a plaintext file, and I know it. The trade was that the
+Claude Code desktop harness repeatedly lost access to vault-backed credentials, and an MCP server that
+fails to start on a Monday morning costs more than the residual risk of a local file readable only by
+me. The reasoning is written down in the repo so the next person to touch it can disagree with the
+decision rather than discover it.
+
+---
+
+## What is here
 
 ```
 ai-toolkit/
-├── setup.sh                       # Setup para Linux/macOS/WSL (cria symlinks em ~/.claude/)
-├── claude-mcp-setup/              # Setup do Claude Desktop no Windows (CredMan + MCPs)
+├── setup.sh                  # Linux/macOS/WSL: symlinks ~/.claude/ and the shell dotfiles
+├── claude-mcp-setup/         # Windows desktop: MCP wiring with Credential Manager (DPAPI)
+│   ├── setup.ps1
 │   ├── INSTALL.md
-│   ├── launchers/                 # Launchers .ps1 por MCP server
-│   └── setup.ps1
+│   └── launchers/            # one PowerShell launcher per MCP server
 ├── claude/
-│   ├── CLAUDE.md                  # Instruções globais do Claude Code (~/.claude/CLAUDE.md)
-│   ├── settings.json              # Settings do CLI no WSL (symlink p/ ~/.claude/settings.json)
-│   ├── settings.windows.json      # Snapshot do settings.json do Claude Desktop (Windows) — backup
-│   └── hooks/                     # Hooks do Claude Code (deploy p/ ~/.claude/hooks/)
-├── dotfiles/                      # Shell e ssh do WSL (symlink p/ ~/.zshenv, ~/.zshrc, ~/.ssh/config)
-│   └── zshenv.local.example       # Template dos segredos — o .local real nunca é versionado
-├── commands/                      # Slash commands disponíveis no Claude Code (~/.claude/commands/)
-└── agents/                        # Subagentes (~/.claude/agents/) — ex.: advisor
+│   ├── CLAUDE.md             # global agent instructions
+│   ├── settings.json         # CLI settings (WSL), symlinked
+│   ├── settings.windows.json # versioned snapshot of the desktop app's settings
+│   └── hooks/                # Claude Code lifecycle hooks
+├── dotfiles/                 # zsh and ssh config, symlinked
+├── agents/                   # subagent definitions
+└── commands/                 # slash commands
 ```
 
-> **Dois settings, dois runtimes.** `claude/settings.json` é o do **CLI no WSL** (symlinkado).
-> `claude/settings.windows.json` é um **snapshot manual** do `~/.claude/settings.json` do **Claude
-> Desktop no Windows** — esse arquivo do Desktop não é symlink, então o snapshot é a única cópia
-> versionada. Re-sincronize à mão quando mudar o settings do Desktop. Restaure num PC novo com
-> `claude-mcp-setup/setup.ps1 -RestoreSettings` (faz backup do existente antes).
+### Two runtimes, two settings files
 
-> **Credenciais MCP** (tokens de API) nunca ficam neste repo. No Windows ficam no Windows
-> Credential Manager (DPAPI) via o setup em `claude-mcp-setup/`. No Linux/WSL ficam em env vars
-> exportadas de `~/.zshenv.local` — **texto plano, modo 600, fora de qualquer repo**.
->
-> Texto plano no WSL é decisão explícita, não descuido: o harness do Claude Code Desktop já perdeu
-> acesso a esses tokens vindos de cofre mais de uma vez, e o risco de vazamento foi aceito em troca
-> de o MCP subir sempre. O `FIGMA_API_KEY` é a exceção — vem do `pass`, no `~/.zshrc`, e por isso só
-> existe em shell interativo. Não migrar o Trello para o `pass` sem falar com o dono do repo.
+`claude/settings.json` belongs to the CLI running inside WSL and is symlinked. `settings.windows.json`
+is a manual snapshot of the desktop app's own settings file, which cannot be symlinked, so the snapshot
+is the only versioned copy. The distinction is written down because I lost edits to it twice before
+writing it down.
+
+### The branch guard
+
+`claude/hooks/git-branch-guard.js` refuses commits to integration and production branches. It is a
+guard, not a warning: a warning you can click through is not a guardrail.
 
 ---
 
-## Restaurar em um novo PC
+## Setting up a new machine
 
-### Linux / macOS / WSL
+### Linux, macOS, WSL
 
 ```bash
-# 1. Clonar
 git clone git@github.com:PettiSan/ai-toolkit.git ~/projects/ai-toolkit
-
-# 2. Rodar o setup (symlinks em ~/.claude/ e os dotfiles de shell/ssh)
 bash ~/projects/ai-toolkit/setup.sh
-
-# 3. Criar o arquivo de segredos (não versionado) e preencher
 cp ~/projects/ai-toolkit/dotfiles/zshenv.local.example ~/.zshenv.local
-chmod 600 ~/.zshenv.local
-
-# 4. Instalar o plugin Superpowers via Claude Code marketplace
+chmod 600 ~/.zshenv.local   # then fill in your own tokens
 ```
 
-> O passo 2 **substitui** `~/.zshenv`, `~/.zshrc` e `~/.ssh/config` por symlinks para `dotfiles/`,
-> guardando o que existia como `.bak` ao lado. Numa máquina que já tem shell configurado, confira o
-> `.bak` antes de descartar. O passo 3 não é opcional: sem `~/.zshenv.local` o shell sobe normal e é
-> o MCP do Trello que falha, na primeira chamada, sem mensagem que aponte a causa.
+`setup.sh` replaces `~/.zshenv`, `~/.zshrc` and `~/.ssh/config` with symlinks into `dotfiles/`, keeping
+whatever was there as a `.bak` alongside. On a machine that already has a configured shell, check the
+backup before discarding it.
 
-### Windows (Claude Desktop)
+Step 3 is not optional. Without `~/.zshenv.local` the shell starts normally and the Trello MCP server
+fails on its first call, with no message pointing at the cause.
 
-O setup do Windows é separado porque o Claude Desktop usa um config diferente (`%APPDATA%\Claude\claude_desktop_config.json`) e porque queremos os segredos no **Windows Credential Manager** em vez de texto plano.
+### Windows (Claude Code desktop app)
 
 ```powershell
-# 1. Clonar
 git clone git@github.com:PettiSan/ai-toolkit.git $HOME\projects\ai-toolkit
-
-# 2. Rodar o setup do Windows (ver detalhes em claude-mcp-setup/INSTALL.md)
 cd $HOME\projects\ai-toolkit\claude-mcp-setup
 .\setup.ps1
 ```
 
-O `setup.ps1` instala o módulo `CredentialManager`, baixa os pacotes MCP via npm, lê 5 segredos do usuário (input oculto) e armazena no CredMan via DPAPI, copia launchers `.ps1` para `%USERPROFILE%\.claude\mcp-launchers\` e atualiza `claude_desktop_config.json` apontando pra eles.
-
-Resultado: tokens nunca aparecem em arquivos texto, rotação é 1 comando, sem precisar editar config.
-
-> **Symlinks do `~/.claude/` no Windows não são feitos por nenhum script** — o `setup.sh` só roda em bash (WSL/Linux/macOS). Se você usa Claude Desktop no Windows, sincronize manualmente os arquivos relevantes (CLAUDE.md, settings.json, commands) ou rode o Claude Code Desktop a partir do WSL.
-
----
-
-## Adicionar nova skill
-
-1. Criar `commands/<nome>.md` com o conteúdo da skill
-2. Commitar — o symlink já faz o arquivo aparecer em `~/.claude/commands/` automaticamente
+The script installs the `CredentialManager` module, fetches the MCP packages, reads the secrets from
+hidden input, stores them in the Windows Credential Manager, copies per-server launchers into
+`%USERPROFILE%\.claude\mcp-launchers\`, and rewrites `claude_desktop_config.json` to point at them. The
+tokens never appear in a text file.
 
 ---
 
-## Skills e commands
+## Notes for anyone borrowing this
 
-Este repositório não versiona mais nenhum dos dois. O que morava aqui era regra de processo
-transversal, que vale para qualquer pessoa em qualquer repositório, e por isso saiu para o plugin de
-governança do trabalho, que é de outro dono.
+- **Skills and slash commands that encode team process are not here.** They moved to a private
+  governance plugin owned by my employer, because that is where rules belonging to a team should live.
+  What stays in this repository is personal configuration only. The installers already tolerate their
+  absence: `setup.sh` symlinks each skill directory individually and never deletes what it does not
+  recognize.
+- **The operational configuration is in Portuguese, on purpose.** `claude/CLAUDE.md`, `agents/` and the
+  shell dotfiles are working files I read every day in my own language, and translating them would cost
+  precision to gain nothing. The documentation you are reading is the part meant to be shared.
+- `commands/` keeps a `.gitkeep` deliberately. `setup.sh` symlinks that directory as a whole, so without
+  the file git drops the directory and leaves a dangling symlink in the profile.
+- The Windows path does not create symlinks. If you run the desktop app on Windows against repositories
+  in WSL, either sync the relevant files by hand or run Claude Code from inside WSL.
 
-O wiring dos dois continua nos instaladores, e eles já tratam a ausência sem erro: o `setup.sh`
-symlinka cada pasta de skill e o diretório de commands inteiro, e o `claude-mcp-setup/setup.ps1` copia
-cada um. Nenhum apaga o que não conhece. Fica de pé para o caso de uma skill ou um command puramente
-**pessoal** aparecerem aqui algum dia, que é o único tipo que pertence a este repositório.
+---
 
-⚠️ `commands/` tem um `.gitkeep` de propósito. O `setup.sh` symlinka aquele diretório inteiro, ao
-contrário de `skills/`, que ele symlinka pasta por pasta. Sem o arquivo o git apaga a pasta e o
-symlink do perfil fica pendurado.
+## License
+
+MIT. See [LICENSE](./LICENSE).
