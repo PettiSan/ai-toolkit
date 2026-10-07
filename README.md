@@ -65,6 +65,30 @@ writing it down.
 `claude/hooks/git-branch-guard.js` refuses commits to integration and production branches. It is a
 guard, not a warning: a warning you can click through is not a guardrail.
 
+### Plugins
+
+One plugin is enabled, at user scope, through `enabledPlugins` in `claude/settings.json`:
+
+**`superpowers@claude-plugins-official`** is a software development methodology packaged as skills:
+brainstorming before code, written plans, plan execution by fresh subagents with a review after each
+task, systematic debugging, red/green TDD, and branch finishing. It is the mechanism behind "one
+session orchestrates, implementers run as subagents", which is how a task gets done here instead of
+juggling one session per model.
+
+Two things about it are worth knowing before copying this setup:
+
+- **It is third-party.** Written by Jesse Vincent at Prime Radiant, MIT licensed, source at
+  `github.com/obra/superpowers`. Anthropic's official marketplace only lists it, pinned to a commit.
+  It is not Anthropic code and nothing here audits it; updates arrive through the marketplace refresh.
+- **It changes every session.** A `SessionStart` hook (on startup, clear and compact) runs a bash
+  script that injects the full `using-superpowers` skill as context, in every project. That is the
+  block telling the agent to invoke a skill before any reply. It costs tokens on every start and pushes
+  the agent towards loading skills for simple questions. The upside is the delegation flow above, and
+  the injected text itself yields to `CLAUDE.md` and to direct instructions.
+
+To switch it off without uninstalling, set the entry to `false`. `claude plugin list` shows what is
+installed and where it came from.
+
 ---
 
 ## Setting up a new machine
@@ -76,6 +100,7 @@ git clone git@github.com:PettiSan/ai-toolkit.git ~/projects/ai-toolkit
 bash ~/projects/ai-toolkit/setup.sh
 cp ~/projects/ai-toolkit/dotfiles/zshenv.local.example ~/.zshenv.local
 chmod 600 ~/.zshenv.local   # then fill in your own tokens
+claude plugin install superpowers@claude-plugins-official   # see "Plugins" above before you do
 ```
 
 `setup.sh` replaces `~/.zshenv`, `~/.zshrc` and `~/.ssh/config` with symlinks into `dotfiles/`, keeping
