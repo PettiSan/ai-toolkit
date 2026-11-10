@@ -34,8 +34,33 @@ ensure_symlink() {
 
 ensure_symlink "$REPO/commands"             "$CLAUDE/commands"      "commands/"
 ensure_symlink "$REPO/claude/CLAUDE.md"     "$CLAUDE/CLAUDE.md"     "CLAUDE.md"
-ensure_symlink "$REPO/claude/settings.json" "$CLAUDE/settings.json" "settings.json"
 ensure_symlink "$REPO/agents/advisor.md"    "$CLAUDE/agents/advisor.md" "agents/advisor.md"
+
+# settings.json NÃO é symlink. Programas reescrevem esse arquivo por rename (o próprio
+# Claude Code ao mexer em plugin ou config; o Orca ao instalar seus hooks de agente), e
+# um rename troca o symlink por arquivo comum sem avisar. Foi assim que o versionado
+# ficou morto durante dois meses. O repo guarda um snapshot do que é deliberado; ele é
+# copiado só numa máquina nova. Num perfil que já tem o arquivo, nada é tocado: o diff
+# abaixo é o lembrete de que os dois existem.
+seed_settings() {
+    local src="$REPO/claude/settings.json"
+    local dst="$CLAUDE/settings.json"
+    if [ -L "$dst" ]; then
+        echo "  [fix] settings.json era symlink; virando cópia (ver comentário no setup.sh)"
+        cp --remove-destination "$(readlink -f "$dst")" "$dst"
+    elif [ ! -e "$dst" ]; then
+        cp "$src" "$dst"
+        echo "  [ok] settings.json copiado do snapshot"
+        return
+    fi
+    if diff -q "$src" "$dst" >/dev/null; then
+        echo "  [ok] settings.json igual ao snapshot"
+    else
+        echo "  [info] settings.json difere do snapshot (esperado: hooks de ferramentas, statusLine, plugins fora deste repo)"
+        echo "         diff: diff $src $dst"
+    fi
+}
+seed_settings
 
 # Dotfiles de shell. Os segredos NÃO estão aqui: o zshenv sourceia ~/.zshenv.local,
 # que fica só na máquina, em 600, e nunca é versionado (dotfiles/zshenv.local.example
