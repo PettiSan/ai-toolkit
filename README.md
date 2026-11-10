@@ -4,8 +4,8 @@ Configuration-as-code for AI coding agents, across Linux, WSL and Windows.
 
 This repository is the single source of truth for my Claude Code setup: global agent instructions,
 lifecycle hooks, subagents, shell dotfiles, and the MCP server wiring for both the CLI and the desktop
-app. Everything under `~/.claude/` is a symlink back here, so editing in either place stays in sync and
-two machines cannot quietly drift apart.
+app. Nearly everything under `~/.claude/` is a symlink back here, so editing in either place stays in
+sync and two machines cannot quietly drift apart. The one exception is `settings.json`, below.
 
 ---
 
@@ -45,7 +45,7 @@ ai-toolkit/
 │   └── launchers/            # one PowerShell launcher per MCP server
 ├── claude/
 │   ├── CLAUDE.md             # global agent instructions
-│   ├── settings.json         # CLI settings (WSL), symlinked
+│   ├── settings.json         # snapshot of the CLI settings (WSL), copied once, never symlinked
 │   ├── settings.windows.json # versioned snapshot of the desktop app's settings
 │   └── hooks/                # Claude Code lifecycle hooks
 ├── dotfiles/                 # zsh and ssh config, symlinked
@@ -53,12 +53,20 @@ ai-toolkit/
 └── commands/                 # slash commands
 ```
 
-### Two runtimes, two settings files
+### Two runtimes, two settings files, both snapshots
 
-`claude/settings.json` belongs to the CLI running inside WSL and is symlinked. `settings.windows.json`
-is a manual snapshot of the desktop app's own settings file, which cannot be symlinked, so the snapshot
-is the only versioned copy. The distinction is written down because I lost edits to it twice before
-writing it down.
+`claude/settings.json` belongs to the CLI running inside WSL; `settings.windows.json` to the desktop
+app on Windows. Neither is symlinked. The Windows one never could be. The WSL one was, until a program
+rewrote the file by rename and silently replaced the symlink with a regular file: Claude Code does that
+when a plugin is enabled or a setting changes, and Orca does it when it installs its agent hooks. The
+versioned copy sat dead for two months before anyone noticed, which is the drift this repository
+exists to prevent.
+
+So `setup.sh` copies the snapshot once, on a machine that has no `settings.json` yet, and otherwise
+leaves the live file alone and prints whether the two differ. The snapshot holds what is deliberate:
+permissions, default model and effort, theme, notification toggles, and the third-party plugin. It
+leaves out what belongs to a tool or to a machine: hooks that other programs install, a status line
+pointing at an unversioned script, and anything that names my employer's repositories.
 
 ### The branch guard
 
